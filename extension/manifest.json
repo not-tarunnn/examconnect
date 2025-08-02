@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Blocker",
+  "version": "1.0",
+  "description": "Block distracting sites like Instagram, Facebook, and Twitter.",
+  "permissions": ["webRequest", "webRequestBlocking", "declarativeNetRequest", "storage"],
+  "host_permissions": [
+    "*://*.facebook.com/*",
+    "*://*.twitter.com/*",
+    "*://*.instagram.com/*",
+    "*://*.x.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:*/*", "https://localhost:*/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_title": "Focus Blocker"
+  },
+  "externally_connectable": {
+    "matches": ["http://localhost:*/*", "https://localhost:*/*"]
+  }
+}
