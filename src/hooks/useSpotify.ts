@@ -81,7 +81,7 @@ export const useSpotify = () => {
       const spotifyPlayer = new window.Spotify.Player({
         name: 'ExamConnect Sleep Player',
         getOAuthToken: (cb: (token: string) => void) => {
-          cb(accessToken);
+          cb(accessToken || "");
         },
         volume: 0.5,
       });
