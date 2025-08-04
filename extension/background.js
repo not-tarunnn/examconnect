@@ -5,7 +5,13 @@ const blockedSites = [
 ];
 
 let isBlocking = false;
-let dashboardUrl = "http://localhost:48752/dashboard"; // Default fallback
+let dashboardUrl = "https://examconnect.vercel.app/dashboard";
+
+// If running locally (for testing), override the URL
+if (location?.origin?.includes("localhost")) {
+  dashboardUrl = "http://localhost:48752/dashboard";
+}
+
 
 // Listen for messages from the web app
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
