@@ -132,43 +132,52 @@ export default function SignupPage() {
       <div className="flex-1 w-full flex justify-center items-center px-4">
         <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-center gap-12 mt-8">
           {/* Left: Email signup */}
-          <div className="flex-1 w-full">
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-            />
+          <form
+  onSubmit={(e) => {
+    e.preventDefault(); // Prevents page reload
+    signupWithEmail();  // Calls your signup function
+  }}
+  className="flex-1 w-full"
+>
+  <label htmlFor="email" className="block text-sm font-medium mb-1">
+    Email
+  </label>
+  <input
+    type="email"
+    id="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    placeholder="Enter your email"
+    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
+    required
+  />
 
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium mt-6 mb-1"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
-              className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-            />
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+  <label
+    htmlFor="password"
+    className="block text-sm font-medium mt-6 mb-1"
+  >
+    Password
+  </label>
+  <input
+    type="password"
+    id="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    placeholder="Create a password"
+    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
+    required
+  />
 
-            {/* Email Signup Button */}
-            <button
-              onClick={signupWithEmail}
-              className="mt-6 px-6 py-3 rounded-full border border-blue-500 text-blue-600 hover:bg-blue-50 transition text-sm"
-            >
-              Sign Up with Email →
-            </button>
-          </div>
+  {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+  <button
+    type="submit"
+    className="mt-6 px-6 py-3 rounded-full border border-blue-500 text-blue-600 hover:bg-blue-50 transition text-sm"
+  >
+    Sign Up with Email →
+  </button>
+</form>
+
 
           {/* Divider */}
           <div className="hidden md:flex items-center justify-center px-6">

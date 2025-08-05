@@ -1,16 +1,20 @@
-import { create } from 'zustand';
+// useSidebarStore.ts
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type SidebarStore = {
   collapsed: boolean;
   toggle: () => void;
 };
 
-export const useSidebarStore = create<SidebarStore>((set) => ({
-  collapsed: false,
-  toggle: () =>
-    set((state) => {
-      const next = !state.collapsed;
-      localStorage.setItem("sidebar-collapsed", String(next)); // optional
-      return { collapsed: next };
+export const useSidebarStore = create<SidebarStore>()(
+  persist(
+    (set) => ({
+      collapsed: false,
+      toggle: () => set((state) => ({ collapsed: !state.collapsed })),
     }),
-}));
+    {
+      name: "sidebar-collapsed", // stored in localStorage under this key
+    }
+  )
+);

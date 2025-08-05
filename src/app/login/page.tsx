@@ -83,51 +83,60 @@ export default function LoginPage() {
       <div className="flex-1 w-full flex justify-center items-center px-4">
         <div className="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-center gap-12 mt-8">
           {/* Left: Email login */}
-          <div className="flex-1 w-full">
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-            />
+          <form
+  onSubmit={(e) => {
+    e.preventDefault(); // Prevent default form submission behavior (like reloading the page)
+    loginWithEmail();   // Call your existing login function
+  }}
+  className="flex-1 w-full"
+>
+  <label htmlFor="email" className="block text-sm font-medium mb-1">
+    Email
+  </label>
+  <input
+    type="email"
+    id="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    placeholder="Enter your email"
+    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
+    required
+  />
 
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium mt-6 mb-1"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-            />
+  <label
+    htmlFor="password"
+    className="block text-sm font-medium mt-6 mb-1"
+  >
+    Password
+  </label>
+  <input
+    type="password"
+    id="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    placeholder="Enter your password"
+    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
+    required
+  />
 
-            <div className="mt-2 mb-6">
-              <a href="#" className="text-sm text-blue-600 hover:underline">
-                Forgot Password?
-              </a>
-            </div>
+  <div className="mt-2 mb-6">
+    <a href="#" className="text-sm text-blue-600 hover:underline">
+      Forgot Password?
+    </a>
+  </div>
 
-            {error && (
-              <p className="text-red-600 text-sm mb-2">{error}</p>
-            )}
+  {error && (
+    <p className="text-red-600 text-sm mb-2">{error}</p>
+  )}
 
-            <button
-              onClick={loginWithEmail}
-              className="mt-2 px-6 py-3 rounded-full border border-blue-500 text-blue-600 hover:bg-blue-50 transition text-sm"
-            >
-              Continue with Email →
-            </button>
-          </div>
+  <button
+    type="submit"
+    className="mt-2 px-6 py-3 rounded-full border border-blue-500 text-blue-600 hover:bg-blue-50 transition text-sm"
+  >
+    Continue with Email →
+  </button>
+</form>
+
 
           {/* Divider */}
           <div className="hidden md:flex items-center justify-center px-6">

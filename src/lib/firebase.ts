@@ -8,7 +8,8 @@ import {
   browserLocalPersistence,
   setPersistence,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // ✅ Add Firestore
+import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database"; // ✅ Realtime Database
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -18,6 +19,7 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!, // ✅ Add this env var in .env file
 };
 
 // Initialize Firebase app (singleton)
@@ -26,12 +28,15 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Auth instance
 const auth = getAuth(app);
 
-// Firestore instance ✅
+// Firestore instance
 const db = getFirestore(app);
+
+// ✅ Realtime Database instance
+const rtdb = getDatabase(app);
 
 // OAuth Providers
 const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope("https://www.googleapis.com/auth/fitness.sleep.read"); // Sleep data
+googleProvider.addScope("https://www.googleapis.com/auth/fitness.sleep.read");
 googleProvider.addScope("profile");
 googleProvider.addScope("email");
 
@@ -53,7 +58,8 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
 // Export everything
 export {
   auth,
-  db, // ✅ Export Firestore
+  db,      // Firestore
+  rtdb,    // ✅ Realtime Database
   googleProvider,
   facebookProvider,
   twitterProvider,

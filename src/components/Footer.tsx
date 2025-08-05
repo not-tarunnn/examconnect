@@ -7,7 +7,7 @@ export default function Footer() {
       {/* Footer Content */}
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 px-0  py-4 max-w-7xl mx-auto bg-transparent ">
         <p className="text-sm translate-x-[-1.5em] text-center text-black md:text-left">
-          © 2025 KETO COOKIES | All Rights Reserved
+          © 2025 EXAM CONNECT | All Rights Reserved
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold uppercase translate-x-[1.5em]">
