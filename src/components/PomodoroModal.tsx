@@ -1,53 +1,65 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Plus, Repeat, X } from "lucide-react";
 import { useStreakStore } from "@/store/useStreakStore";
 import { syncStreakToFirestore } from "@/lib/syncStreak";
-import { auth } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import TaskCard from "@/components/task/TaskCard"; // 👈 make sure this path is correct
 
 interface PomodoroModalProps {
   onClose: () => void;
 }
 
+
+import type { Task } from "@/types/task";
+
 const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
-  const [timeLeft, setTimeLeft] = useState(25*60); // 25 minutes
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
 
-  const {
-    lastStreakDate,
-    incrementStreak,
-    setStreaksFromFirestore,
-  } = useStreakStore();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
+  const [userTasks, setUserTasks] = useState<Task[]>([]);
 
-  // 🔄 Load streak data from Firestore once when modal opens
+  const { lastStreakDate, incrementStreak, setStreaksFromFirestore } = useStreakStore();
+
   useEffect(() => {
-  const loadStreak = async () => {
+    const loadStreak = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const ref = doc(db, "streak", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        setStreaksFromFirestore(data.streak || 0, data.longestStreak || 0, data.lastStreakDate || null);
+      } else {
+        useStreakStore.getState().resetStreak();
+      }
+    };
+
+    loadStreak();
+    fetchTasks(); // Load tasks on open
+  }, [setStreaksFromFirestore]);
+
+  const fetchTasks = async () => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const ref = doc(db, "streak", user.uid);
-    const snap = await getDoc(ref);
+    const q = query(collection(db, "tasks"), where("uid", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+    const tasksData: Task[] = [];
 
-    if (snap.exists()) {
-      const data = snap.data();
-      setStreaksFromFirestore(
-        data.streak || 0,
-        data.longestStreak || 0,
-        data.lastStreakDate || null
-      );
-    } else {
-      // 👇 Reset Zustand if no streak data exists in Firestore
-      useStreakStore.getState().resetStreak();
-    }
+    querySnapshot.forEach((doc) => {
+      tasksData.push({ id: doc.id, ...doc.data() } as Task);
+    });
+
+    setUserTasks(tasksData);
   };
 
-  loadStreak();
-}, [setStreaksFromFirestore]);
-
-  // 🧠 Pomodoro timer countdown
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
@@ -58,7 +70,6 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     return () => clearInterval(timer);
   }, [isRunning, timeLeft]);
 
-  // ✅ Detect when Pomodoro completes
   useEffect(() => {
     if (timeLeft === 0 && isRunning) {
       handlePomodoroComplete();
@@ -66,7 +77,6 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     }
   }, [timeLeft, isRunning]);
 
-  // 🎯 Format time nicely
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
       .toString()
@@ -75,81 +85,111 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     return `${mins}:${secs}`;
   };
 
-  // 🔁 Reset Pomodoro
   const handleReset = () => {
     setIsRunning(false);
-    setTimeLeft(25*60);
+    setTimeLeft(25 * 60);
   };
 
-  // ⭐ When Pomodoro completes
   const handlePomodoroComplete = async () => {
     const now = new Date();
-    const todayISO = new Date(now.toDateString()).toISOString(); // Midnight today
+    const todayISO = new Date(now.toDateString()).toISOString();
     const last = lastStreakDate ? new Date(lastStreakDate) : null;
 
-    const isSameDay =
-      last &&
-      new Date(last.toDateString()).toISOString() === todayISO;
+    const isSameDay = last && new Date(last.toDateString()).toISOString() === todayISO;
 
     if (!isSameDay) {
       incrementStreak(todayISO);
-      await syncStreakToFirestore(); // sync with Firestore
+      await syncStreakToFirestore();
     }
   };
 
-return (
-  <div className="fixed inset-0 z-50 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
-      {/* 🔄 Background Video */}
-    <video
-      autoPlay
-      loop
-      muted
-      playsInline
-      className="absolute inset-0 w-full h-full object-cover z-[-99999] opacity-30"
-    >
-      <source src="/bg.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-    {/* Close Button */}
-    <button
-      onClick={onClose}
-      className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition"
-    >
-      <X className="w-7 h-7" />
-    </button>
+  return (
+    <div className="fixed inset-0 z-50 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
+      {/* ❌ Close Button */}
+      <button
+        onClick={onClose}
+        className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition"
+      >
+        <X className="w-7 h-7" />
+      </button>
+
+      {/* ✅ Selected Task Display (Top-left) */}
+<div className="absolute top-3 left-24 max-w-xl  ">
+  {selectedTask && <TaskCard task={selectedTask} />}
+</div>
 
 
-    {/* Timer */}
-    <div className="text-[72px] sm:text-[96px] font-bold tracking-widest mb-12">
-      {formatTime(timeLeft)}
-    </div>
+      {/* ➕ Add Task Button */}
+{!selectedTask ? (
+  <button
+    onClick={() => setShowTaskPicker(true)}
+    className="absolute top-5 right-20 p-2 rounded-full bg-white hover:bg-gray-200 text-black shadow"
+  >
+    <Plus className="w-5 h-5" />
+  </button>
+) : (
+  <button
+    onClick={() => setShowTaskPicker(true)}
+    className="absolute top-5 right-20 p-2 rounded-full bg-white hover:bg-gray-200 text-black shadow"
+  >
+    <Repeat className="w-5 h-5" />
+  </button>
+)}
 
-    {/* Controls */}
-    <div className="flex flex-wrap justify-center gap-6">
+
+
+
+      {/* 🔁 Pomodoro Timer */}
       <button
         onClick={() => setIsRunning(!isRunning)}
-        className={`px-10 py-4 text-xl rounded-xl font-semibold transition-all shadow-md ${
-          isRunning
-            ? "bg-yellow-500 hover:bg-yellow-600 text-black"
-            : "bg-green-600 hover:bg-green-700 text-white"
-        }`}
+        className="w-60 h-60 sm:w-72 sm:h-72 rounded-full bg-white/90 text-black flex items-center justify-center transition-all shadow-xl hover:scale-105 active:scale-95"
       >
-        {isRunning ? "Pause" : "Start"}
+        <span className="text-[48px] sm:text-[64px] font-bold tracking-widest">
+          {formatTime(timeLeft)}
+        </span>
       </button>
+
+      {/* 🔄 Reset Button */}
       <button
         onClick={handleReset}
-        className="px-10 py-4 text-xl rounded-xl font-semibold bg-gray-700 hover:bg-gray-600 transition-all text-white shadow-md"
+        className="mt-10 px-10 py-4 text-xl rounded-xl font-semibold bg-gray-700 hover:bg-gray-600 transition-all text-white shadow-md"
       >
         Reset
       </button>
-    </div>
 
-    {/* Tip or Streak Info Placeholder */}
-    <p className="mt-12 text-gray-400 text-center text-sm max-w-md">
-      Stay focused for 25 uninterrupted minutes to earn your daily streak.
-    </p>
-  </div>
-);
-}
+      {/* 🧠 Tip / Info */}
+      <p className="mt-6 text-gray-400 text-center text-sm max-w-md">
+        Tap the circle to start/pause. Complete 25 mins to earn your daily streak.
+      </p>
+
+      {/* 📋 Task Selection Modal */}
+      {showTaskPicker && (
+        <div className="absolute inset-0 bg-black/70 backdrop-blur flex flex-col items-center justify-center z-50  p-4">
+          <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md space-y-4">
+            <h2 className="text-lg font-bold text-white mb-2">Select a Task</h2>
+            {userTasks.map((task) => (
+              <button
+                key={task.id}
+                onClick={() => {
+                  setSelectedTask(task);
+                  setShowTaskPicker(false);
+                }}
+                className="w-full text-left px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition"
+              >
+                {task.title}
+              </button>
+            ))}
+            <button
+              onClick={() => setShowTaskPicker(false)}
+              className="w-full mt-2 text-sm text-gray-400 hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default PomodoroModal;

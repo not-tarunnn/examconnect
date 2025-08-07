@@ -11,13 +11,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import SleepScoreCard from "@/components/sleep/SleepScoreCard";
 import SleepStreakCard from "@/components/sleep/SleepStreakCard";
 import SleepDataCard from "@/components/sleep/SleepDataCard";
+import { CustomTimePicker } from "@/components/ui/custom-time-picker";
+import { FaBell } from "react-icons/fa6";
+import { FaVolumeUp } from "react-icons/fa";
 
 
 export default function SleepPage() {
   const { collapsed } = useSidebarStore();
   const [sleepDuration] = useState(6.5); // in hours, mock
   const sleepScore = Math.min(100, Math.floor((sleepDuration / 8) * 100));
-
+  const [time, setTime] = useState<Date | null>(new Date()); // ✅ default as Date
+ const [isBellActive, setIsBellActive] = useState(false);
+  const [isSpeakerActive, setIsSpeakerActive] = useState(false);
+  
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -52,15 +58,44 @@ export default function SleepPage() {
 
                   {/* Bedtime Reminders Side-by-Side */}
                   <div className="flex gap-4">
+                   
                     {/* Bedtime Reminder Part 1 */}
-                    <Card className="backdrop-blur-xl bg-black/30 border-none text-white w-1/2 hover:scale-105 transition-transform duration-200 h-full ">
-                      <CardHeader>
-                        <CardTitle className="text-base">🛌 Set Bedtime</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm">Your target bedtime is 10:30 PM.</p>
-                      </CardContent>
-                    </Card>
+
+                <Card className="backdrop-blur-xl bg-black/30 border-none text-white w-full sm:w-1/2  h-full">
+                  <CardContent className="flex flex-col gap-4 items-center pt-4">
+
+                   {/* Top: Two Square Buttons */}
+ <div className="flex w-full gap-4">
+      
+
+      {/* Speaker Button */}
+      <div
+        onClick={() => setIsSpeakerActive(!isSpeakerActive)}
+        className={`aspect-square w-1/2 rounded-xl flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 backdrop-blur-xl ${
+          isSpeakerActive ? "bg-blue-500" : "bg-white/30 hover:bg-white/60"
+        }`}
+      >
+        <FaVolumeUp className="text-white text-3xl" />  
+      </div>
+
+      {/* Bell Button */}
+      <div
+        onClick={() => setIsBellActive(!isBellActive)}
+        className={`aspect-square w-1/2 rounded-xl flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 backdrop-blur-xl ${
+          isBellActive ? "bg-green-500" : "bg-white/30 hover:bg-white/60"
+        }`}
+      >
+        <FaBell className="text-white text-3xl" />
+      </div>
+    </div>
+                    {/* Bottom: 2:1 Time Setter */}
+       
+          <CustomTimePicker value={time} onChangeAction={setTime} />
+        
+
+                  </CardContent>
+                </Card>
+
 
                     {/* Bedtime Reminder Part 2 */}
                     <Card className="backdrop-blur-xl bg-black/30 border-none text-white w-1/2 hover:scale-105 transition-transform h-full duration-200">
