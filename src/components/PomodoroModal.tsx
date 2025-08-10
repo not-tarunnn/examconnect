@@ -18,6 +18,7 @@ import type { Task } from "@/types/task";
 const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState<number>(0);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskPicker, setShowTaskPicker] = useState(false);
@@ -77,13 +78,24 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     }
   }, [timeLeft, isRunning]);
 
-  const formatTime = (seconds: number) => {
+ const formatTime = (seconds: number) => {
+  if (seconds >= 3600) {
+    const hrs = Math.floor(seconds / 3600)
+      .toString()
+      .padStart(1, "0");
+    const mins = Math.floor((seconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const secs = (seconds % 60).toString().padStart(2, "0");
+    return `${hrs}:${mins}:${secs}`;
+  } else {
     const mins = Math.floor(seconds / 60)
       .toString()
       .padStart(2, "0");
     const secs = (seconds % 60).toString().padStart(2, "0");
     return `${mins}:${secs}`;
-  };
+  }
+};
 
   const handleReset = () => {
     setIsRunning(false);
@@ -150,12 +162,54 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
       </button>
 
       {/* 🔄 Reset Button */}
-      <button
-        onClick={handleReset}
-        className="mt-10 px-10 py-4 text-xl rounded-xl font-semibold bg-gray-700 hover:bg-gray-600 transition-all text-white shadow-md"
-      >
-        Reset
-      </button>
+<button
+  onClick={handleReset}
+  className="mt-10 px-10 py-4 text-xl rounded-xl font-semibold bg-gray-700 hover:bg-gray-600 transition-all text-white shadow-md"
+>
+  Reset
+</button>
+
+{/* ⏳ Timer Presets */}
+<div className="mt-6 flex gap-4">
+  {[25, 35, 55].map((minutes) => (
+    <button
+      key={minutes}
+      onClick={() => {
+        setIsRunning(false);
+        setTimeLeft(minutes * 60);
+      }}
+      className="w-14 h-14 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-white font-bold"
+    >
+      {minutes}
+    </button>
+  ))}
+
+  {/* Custom Time Input & Button */}
+<div className="flex items-center gap-2">
+    <button
+    onClick={() => {
+      if (customMinutes && customMinutes > 0) {
+        setIsRunning(false);
+        setTimeLeft(customMinutes * 60);
+      }
+    }}
+    className="w-14 h-14 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-black font-bold"
+  >
+    ⌛
+  </button>
+  <input
+    type="number"
+    min={1}
+    placeholder="mins"
+    className="w-20 px-2 py-1 rounded-md border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+    value={customMinutes}
+    onChange={(e) => setCustomMinutes(Number(e.target.value))}
+  />
+
+</div>
+
+</div>
+
 
       {/* 🧠 Tip / Info */}
       <p className="mt-6 text-gray-400 text-center text-sm max-w-md">

@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
 import { Flame } from "lucide-react";
 import { useSidebarStore } from "@/store/useSidebarStore";
-
+import { useStreakStore } from "@/store/useStreakStore";
+import { fetchStreakFromFirestore } from "@/lib/fetchStreak";
 const TABS = ["stats", "habits", "streak", "tasks", "achievements"];
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("stats");
   const { collapsed } = useSidebarStore();
+const { streak, longestStreak } = useStreakStore();
 
+  useEffect(() => {
+    fetchStreakFromFirestore();
+  }, []);
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -54,7 +59,7 @@ export default function DashboardPage() {
             {activeTab === "stats" && (
               <div className="flex flex-col items-center mb-6">
                 <Flame size={80} color="orange" />
-                <h2 className="text-2xl font-bold mt-2">Day 45</h2>
+                <h2 className="text-2xl font-bold mt-2">Day {streak}</h2>
                 <p className="text-gray-400 text-center max-w-xs mt-1">
                   Your current streak is on fire. Keep up the consistency!
                 </p>
