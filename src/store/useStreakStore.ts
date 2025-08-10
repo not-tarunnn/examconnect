@@ -10,29 +10,49 @@ interface StreakState {
   resetStreak: () => void;
   setLastStreakDate: (date: string) => void;
   setStreaksFromFirestore: (streak: number, longest: number, date: string) => void;
+  checkStreakExpiry: () => void;
 }
 
 export const useStreakStore = create<StreakState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       streak: 0,
       longestStreak: 0,
       lastStreakDate: null,
 
-      incrementStreak: (currentDate: string) =>
-        set((state) => {
-          const newStreak = state.streak + 1;
-          return {
-            streak: newStreak,
-            longestStreak: Math.max(newStreak, state.longestStreak),
-            lastStreakDate: currentDate,
-          };
-        }),
+      incrementStreak: (currentDate: string) => {
+        const state = get();
+
+        // Check if the streak expired before incrementing
+        const lastDate = state.lastStreakDate ? new Date(state.lastStreakDate) : null;
+        const now = new Date(currentDate);
+
+        if (lastDate) {
+          const diffHours = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+          if (diffHours > 24) {
+            // If expired, reset and start from 1
+            set({
+              streak: 1,
+              longestStreak: Math.max(1, state.longestStreak),
+              lastStreakDate: currentDate,
+            });
+            return;
+          }
+        }
+
+        // Otherwise, continue the streak
+        const newStreak = state.streak + 1;
+        set({
+          streak: newStreak,
+          longestStreak: Math.max(newStreak, state.longestStreak),
+          lastStreakDate: currentDate,
+        });
+      },
 
       resetStreak: () =>
         set({
           streak: 0,
-          longestStreak: 0, // ✅ reset this too
+          longestStreak: 0,
           lastStreakDate: null,
         }),
 
@@ -44,6 +64,22 @@ export const useStreakStore = create<StreakState>()(
           longestStreak: longest,
           lastStreakDate: date,
         }),
+
+      checkStreakExpiry: () => {
+        const state = get();
+        if (!state.lastStreakDate) return;
+
+        const lastDate = new Date(state.lastStreakDate);
+        const now = new Date();
+        const diffHours = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+
+        if (diffHours > 24) {
+          set({
+            streak: 0,
+            lastStreakDate: null,
+          });
+        }
+      },
     }),
     {
       name: "streak-storage", // localStorage key
