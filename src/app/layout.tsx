@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import '../app/globals.css'; // adjust path as needed
 import { Analytics } from "@vercel/analytics/next"
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 export const metadata: Metadata = {
   title: 'ExamConnect',
   description: 'Your all-in-one exam preparation community app',
@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
       <Analytics/>
+      <SpeedInsights/>
       </body>
     </html>
   );
