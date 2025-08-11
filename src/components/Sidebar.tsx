@@ -173,7 +173,7 @@ export default function Sidebar() {
                   Profile
                 </Link>
                 <Link
-                  href="/account"
+                  href="#"
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
                 >
                   <FaCog />

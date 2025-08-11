@@ -117,23 +117,57 @@ export default function SleepPage() {
                   </Card>
 
                   {/* Bedtime Hygiene Tips */}
-                  <Card className="backdrop-blur-xl bg-black/30 border-none text-white hover:scale-105 transition-transform h-full duration-200">
-                    <CardHeader>
-                      <CardTitle className="text-base">🧼 Bedtime Hygiene Tips</CardTitle>
-                    </CardHeader>
+                  <Card className="backdrop-blur-xl bg-black/30 border-none text-white  h-full ">
                     <CardContent>
-                      <ScrollArea className="h-40 pr-2">
-                        <ul className="space-y-2 text-sm">
-                          <li>• Avoid screens 1 hour before sleep</li>
-                          <li>• Keep room cool and dark</li>
-                          <li>• Follow a consistent schedule</li>
-                          <li>• Avoid caffeine after 4 PM</li>
-                          <li>• Try gentle stretches before bed</li>
-                          <li>• Meditate for 5 minutes</li>
-                          <li>• Dim the lights an hour before bed</li>
-                        </ul>
-                      </ScrollArea>
-                    </CardContent>
+  <ScrollArea className="h-72 pr-2 pt-5 hover:scale-105 transition-transform duration-200">
+    <div className="flex flex-col gap-3">
+      {[
+        {
+          img: "/tips/img1.png",
+          text: "Avoid screens 1 hour before sleep",
+        },
+        {
+          img: "/tips/coolroom.jpg",
+          text: "Keep room cool and dark",
+        },
+        {
+          img: "/tips/schedule.jpg",
+          text: "Follow a consistent schedule",
+        },
+        {
+          img: "/tips/caffeine.jpg",
+          text: "Avoid caffeine after 4 PM",
+        },
+        {
+          img: "/tips/stretch.jpg",
+          text: "Try gentle stretches before bed",
+        },
+        {
+          img: "/tips/meditate.jpg",
+          text: "Meditate for 5 minutes",
+        },
+      ].map((tip, i) => (
+        <div
+          key={i}
+          className="relative group w-full overflow-hidden rounded-lg shadow-lg"
+        >
+          {/* Image */}
+          <img
+            src={tip.img}
+            alt={tip.text}
+            className="w-full h-auto object-cover transform transition-transform duration-300 group-hover:scale-105"
+          />
+
+          {/* Overlay text with shadow-from-below */}
+          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3">
+            <p className="text-white text-sm">{tip.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </ScrollArea>
+</CardContent>
+
                   </Card>
                 </div>
 
@@ -145,7 +179,9 @@ export default function SleepPage() {
             </TabsContent>
 
             <TabsContent value="advanced" className="w-full">
-              <div className="text-white">Advanced sleep analytics coming soon...</div>
+                <div className="flex-1 flex items-center justify-center text-muted-foreground text-xl font-medium">
+    🚧 Health feature is under development.
+  </div>
             </TabsContent>
           </Tabs>
         </div>

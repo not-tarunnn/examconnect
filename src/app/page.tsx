@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 import TypingTitle from '@/components/TypingTitle'; // Update path if needed
 import { useEffect } from "react";
 import useAuth from '@/hooks/useAuth';
-
+import { FaRegClock, FaTasks, FaComments, FaRobot } from "react-icons/fa";
 export default function HomePage() {
     const { user, loading } = useAuth();
 
@@ -68,10 +68,42 @@ export default function HomePage() {
   </div>
 </div>
 
-        {/* RIGHT: Text Prompt */}
-        <div className="custom-gradient-right text-left flex flex-col justify-center p-10 text-purple-300 w-full md:w-2/3">
-          
-        </div>
+
+{/* RIGHT: Text Prompt */}
+<div className="custom-gradient-right p-20 text-white w-full md:w-2/3 grid grid-cols-2 gap-1 justify-items-center">
+  <div className="flex flex-col items-center cursor-pointer hover:text-purple-400 transition-colors duration-300">
+    <FaRegClock className="w-16 h-16 mb-4" />
+    <h3 className="font-semibold text-xl text-center">Study & Sleep Tracker</h3>
+    <p className="text-center text-sm opacity-80 max-w-xs mt-2">
+      Track your study sessions and sleep patterns for optimized learning and rest.
+    </p>
+  </div>
+
+  <div className="flex flex-col items-center cursor-pointer hover:text-purple-400 transition-colors duration-300">
+    <FaTasks className="w-16 h-16 mb-4" />
+    <h3 className="font-semibold text-xl text-center">Task & Habit Management</h3>
+    <p className="text-center text-sm opacity-80 max-w-xs mt-2">
+      Create and organize tasks and habits with live progress syncing.
+    </p>
+  </div>
+
+  <div className="flex flex-col items-center cursor-pointer hover:text-purple-400 transition-colors duration-300">
+    <FaComments className="w-16 h-16 mb-4" />
+    <h3 className="font-semibold text-xl text-center">Real-time Chat & Social Features</h3>
+    <p className="text-center text-sm opacity-80 max-w-xs mt-2">
+      Connect and collaborate with peers through chat, posts, and bookmarks.
+    </p>
+  </div>
+
+  <div className="flex flex-col items-center cursor-pointer hover:text-purple-400 transition-colors duration-300">
+    <FaRobot className="w-16 h-16 mb-4" />
+    <h3 className="font-semibold text-xl text-center">AI Tutor & Analytics Dashboard</h3>
+    <p className="text-center text-sm opacity-80 max-w-xs mt-2">
+      Get personalized tutoring and insights on your learning progress.
+    </p>
+  </div>
+</div>
+
       </main>
 
       {/* Footer */}
