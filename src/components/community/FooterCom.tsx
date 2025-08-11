@@ -8,7 +8,7 @@ export default function Footer() {
         {/* Single row with icons and search bar */}
         <div className="flex justify-center items-center gap-8 text-xl text-gray-400">
           {/* Left icons */}
-          <a href="#" className="hover:text-white transition" title="Friends">
+          <a href="/message" className="hover:text-white transition" title="Friends">
             <FaFacebookMessenger />
           </a>
           <a href="#" className="hover:text-white transition" title="Groups/Channels">
