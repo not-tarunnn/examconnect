@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import Script from 'next/script'; // ✅ Import Script
 import '../app/globals.css';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'ExamConnect',
@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Main content should grow to fill available space */}
         <main className="flex-grow">{children}</main>
-       
+       <Analytics />
       </body>
     </html>
   );
