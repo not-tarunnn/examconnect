@@ -119,32 +119,62 @@ export default function SleepPage() {
                   {/* Bedtime Hygiene Tips */}
                   <Card className="backdrop-blur-xl bg-black/30 border-none text-white  h-full ">
                     <CardContent>
-  <ScrollArea className="h-72 pr-2 pt-5 hover:scale-105 transition-transform duration-200">
-    <div className="flex flex-col gap-3">
+  <ScrollArea className="h-[17.9rem] pr-2 pt-5 ">
+    <div className="flex flex-col gap-3 ">
       {[
         {
-          img: "/tips/img1.png",
+          img: "/tips/img1.webp",
           text: "Avoid screens 1 hour before sleep",
+          desc: [
+            "Blue light from screens delays melatonin release.",
+            "Helps your brain wind down for rest.",
+            "Reduces overstimulation from social media or games."
+          ],
         },
         {
-          img: "/tips/coolroom.jpg",
-          text: "Keep room cool and dark",
-        },
-        {
-          img: "/tips/schedule.jpg",
+          img: "/tips/img2.webp",
           text: "Follow a consistent schedule",
+          desc: [
+            "Trains your body’s internal clock (circadian rhythm).",
+            "Improves sleep quality over time.",
+            "Easier to fall asleep and wake up naturally."
+          ],
         },
         {
-          img: "/tips/caffeine.jpg",
+          img: "/tips/img3.webp",
           text: "Avoid caffeine after 4 PM",
+          desc: [
+            "Caffeine stays in your system for 6–8 hours.",
+            "Prevents restlessness and difficulty falling asleep.",
+            "Switch to herbal teas or water in the evening."
+          ],
         },
         {
-          img: "/tips/stretch.jpg",
+          img: "/tips/img5.webp",  
+          text: "Keep room cool and dark",
+          desc: [
+            "Cool temperatures (18–20°C) help trigger sleep.",
+            "Darkness signals your body to produce melatonin.",
+            "Reduces night-time wake-ups."
+          ],
+        },
+        {
+          img: "/tips/img4.webp",
           text: "Try gentle stretches before bed",
+          desc: [
+            "Relieves muscle tension from the day.",
+            "Promotes relaxation and blood flow.",
+            "Can reduce nighttime cramps or stiffness."
+          ],
         },
         {
-          img: "/tips/meditate.jpg",
+          img: "/tips/img6.webp",
           text: "Meditate for 5 minutes",
+          desc: [
+            "Calms the mind and reduces stress.",
+            "Helps slow down racing thoughts.",
+            "Encourages a smoother transition to sleep."
+          ],
         },
       ].map((tip, i) => (
         <div
@@ -155,18 +185,24 @@ export default function SleepPage() {
           <img
             src={tip.img}
             alt={tip.text}
-            className="w-full h-auto object-cover transform transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-auto object-cover transform transition-transform duration-300 group-hover:scale-110"
           />
 
-          {/* Overlay text with shadow-from-below */}
-          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3">
-            <p className="text-white text-sm">{tip.text}</p>
+          {/* Overlay text */}
+          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3">
+            <p className="text-white text-md font-bold">{tip.text}</p>
+            <ul className="text-white text-sm mt-1 list-disc list-inside space-y-1">
+              {tip.desc.map((point, idx) => (
+                <li key={idx}>{point}</li>
+              ))}
+            </ul>
           </div>
         </div>
       ))}
     </div>
   </ScrollArea>
 </CardContent>
+
 
                   </Card>
                 </div>

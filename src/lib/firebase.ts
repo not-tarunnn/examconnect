@@ -9,7 +9,8 @@ import {
   setPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getDatabase } from "firebase/database"; // ✅ Realtime Database
+import { getDatabase } from "firebase/database";
+import { getAI } from "firebase/ai"; // ✅ Firebase AI
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -19,10 +20,10 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!, // ✅ Add this env var in .env file
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!,
 };
 
-// Initialize Firebase app (singleton)
+// ✅ Initialize Firebase app (singleton)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Auth instance
@@ -33,6 +34,9 @@ const db = getFirestore(app);
 
 // ✅ Realtime Database instance
 const rtdb = getDatabase(app);
+
+// ✅ AI instance
+const ai = getAI(app);
 
 // OAuth Providers
 const googleProvider = new GoogleAuthProvider();
@@ -59,7 +63,8 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
 export {
   auth,
   db,      // Firestore
-  rtdb,    // ✅ Realtime Database
+  rtdb,    // Realtime Database
+  ai,      // ✅ AI
   googleProvider,
   facebookProvider,
   twitterProvider,

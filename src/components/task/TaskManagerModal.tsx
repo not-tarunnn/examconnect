@@ -1,5 +1,6 @@
 "use client";
 
+import { FaMagic } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { Task } from "@/types/task";
 import { db } from "@/lib/firebase";
@@ -30,6 +31,7 @@ type Props = {
   initialTask?: Task | null;
 };
 
+
 export default function TaskManagerModal({ open, onCloseAction, initialTask }: Props) {
   const auth = getAuth();
   const user = auth.currentUser;
@@ -40,6 +42,7 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Low");
   const [dueDate, setDueDate] = useState("");
   const [completed, setCompleted] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   
   useEffect(() => {
@@ -59,6 +62,37 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
       setCompleted(false);
     }
   }, [initialTask]);
+
+
+  const handleAutoGenerate = async () => {
+  if (!title.trim()) return; // No title? Nothing to generate from.
+
+  setIsGenerating(true);
+
+  try {
+    const response = await fetch("/api/generate-subtasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    });
+
+    const data = await response.json();
+
+    if (data.subtasks && Array.isArray(data.subtasks)) {
+      setSubTasks(
+        data.subtasks.map((task: string) => ({ title: task, done: false }))
+      );
+    } else if (data.error) {
+      console.error("AI generation error:", data.error);
+    }
+  } catch (error) {
+    console.error("Error generating subtasks:", error);
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+
 
   const handleSave = async () => {
     if (!user) return;
@@ -108,6 +142,25 @@ return (
           onChange={(e) => setTitle(e.target.value)}
           className="bg-zinc-900 text-white border-zinc-700"
         />
+
+        <div className="flex gap-2 items-center">
+<Button
+  variant="secondary"
+  size="sm"
+  onClick={handleAutoGenerate}
+  disabled={isGenerating || !title.trim()}
+  className="
+    bg-white text-black flex items-center gap-2
+    hover:bg-black hover:text-white
+    transition-colors duration-300 ml-auto
+  "
+>
+  
+  {isGenerating ? "Generating..." : "Auto-Generate via AI"}
+  <FaMagic className="w-5 h-5" />
+</Button>
+</div>
+
 
         {subTasks.map((sub, idx) => (
           <Input
