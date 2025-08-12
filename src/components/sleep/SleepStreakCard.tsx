@@ -128,7 +128,7 @@ function SleepStreakCard() {
             return (
               <div
                 key={key}
-                className={`w-8 h-8 text-xs flex items-center justify-center rounded-md ${color} text-white`}
+                className={`w-8 h-8 text-sm flex items-center justify-center rounded-md ${color} text-white`}
                 title={`${sleepHours} hrs`}
               >
                 {format(day, "d")}

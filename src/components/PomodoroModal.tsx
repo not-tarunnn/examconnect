@@ -5,72 +5,90 @@ import { Plus, Repeat, X } from "lucide-react";
 import { useStreakStore } from "@/store/useStreakStore";
 import { syncStreakToFirestore } from "@/lib/syncStreak";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import TaskCard from "@/components/task/TaskCard"; // 👈 make sure this path is correct
+import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
+import TaskCard from "@/components/task/TaskCard";
+import type { Task } from "@/types/task";
 
 interface PomodoroModalProps {
   onClose: () => void;
 }
-
-
-import type { Task } from "@/types/task";
 
 const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [customMinutes, setCustomMinutes] = useState<number>(0);
 
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [userTasks, setUserTasks] = useState<Task[]>([]);
 
   const { lastStreakDate, incrementStreak, setStreaksFromFirestore } = useStreakStore();
 
+  // 🔹 Listen to streak document live
   useEffect(() => {
-    const loadStreak = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const user = auth.currentUser;
+    if (!user) return;
 
-      const ref = doc(db, "streak", user.uid);
-      const snap = await getDoc(ref);
-
+    const streakRef = doc(db, "streak", user.uid);
+    const unsub = onSnapshot(streakRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        setStreaksFromFirestore(data.streak || 0, data.longestStreak || 0, data.lastStreakDate || null);
+        setStreaksFromFirestore(
+          data.streak || 0,
+          data.longestStreak || 0,
+          data.lastStreakDate || null
+        );
       } else {
         useStreakStore.getState().resetStreak();
       }
-    };
+    });
 
-    loadStreak();
-    fetchTasks(); // Load tasks on open
+    return () => unsub();
   }, [setStreaksFromFirestore]);
 
-  const fetchTasks = async () => {
+  // 🔹 Listen to all tasks for the logged-in user
+  useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
 
     const q = query(collection(db, "tasks"), where("uid", "==", user.uid));
-    const querySnapshot = await getDocs(q);
-    const tasksData: Task[] = [];
-
-    querySnapshot.forEach((doc) => {
-      tasksData.push({ id: doc.id, ...doc.data() } as Task);
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      const tasksData: Task[] = [];
+      querySnapshot.forEach((docSnap) => {
+        const { id: _ignored, ...rest } = docSnap.data() as Task;
+        tasksData.push({ id: docSnap.id, ...rest });
+      });
+      setUserTasks(tasksData);
     });
 
-    setUserTasks(tasksData);
-  };
+    return () => unsub();
+  }, []);
 
+  // 🔹 Live-listen to the selected task only
+  useEffect(() => {
+    if (!selectedTaskId) return;
+    const unsub = onSnapshot(doc(db, "tasks", selectedTaskId), (snap) => {
+      if (snap.exists()) {
+        const { id: _ignored, ...rest } = snap.data() as Task;
+        setSelectedTask({ id: snap.id, ...rest });
+      } else {
+        setSelectedTask(null);
+      }
+    });
+    return () => unsub();
+  }, [selectedTaskId]);
+
+  // Timer countdown
   useEffect(() => {
     let timer: NodeJS.Timeout;
-
     if (isRunning && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     }
-
     return () => clearInterval(timer);
   }, [isRunning, timeLeft]);
 
+  // Handle pomodoro completion
   useEffect(() => {
     if (timeLeft === 0 && isRunning) {
       handlePomodoroComplete();
@@ -78,24 +96,18 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     }
   }, [timeLeft, isRunning]);
 
- const formatTime = (seconds: number) => {
-  if (seconds >= 3600) {
-    const hrs = Math.floor(seconds / 3600)
-      .toString()
-      .padStart(1, "0");
-    const mins = Math.floor((seconds % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${hrs}:${mins}:${secs}`;
-  } else {
-    const mins = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}`;
-  }
-};
+  const formatTime = (seconds: number) => {
+    if (seconds >= 3600) {
+      const hrs = Math.floor(seconds / 3600).toString().padStart(1, "0");
+      const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+      const secs = (seconds % 60).toString().padStart(2, "0");
+      return `${hrs}:${mins}:${secs}`;
+    } else {
+      const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
+      const secs = (seconds % 60).toString().padStart(2, "0");
+      return `${mins}:${secs}`;
+    }
+  };
 
   const handleReset = () => {
     setIsRunning(false);
@@ -106,7 +118,6 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     const now = new Date();
     const todayISO = new Date(now.toDateString()).toISOString();
     const last = lastStreakDate ? new Date(lastStreakDate) : null;
-
     const isSameDay = last && new Date(last.toDateString()).toISOString() === todayISO;
 
     if (!isSameDay) {
@@ -126,9 +137,9 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
       </button>
 
       {/* ✅ Selected Task Display (Top-left) */}
-<div className="absolute top-3 left-24 max-w-xl  ">
-  {selectedTask && <TaskCard task={selectedTask} />}
-</div>
+      <div className="absolute top-3 left-24 max-w-xl">
+        {selectedTask && <TaskCard task={selectedTask} />}
+      </div>
 
 
       {/* ➕ Add Task Button */}
