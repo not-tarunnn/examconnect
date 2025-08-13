@@ -1,4 +1,3 @@
-// components/SleepStreakCard.tsx
 "use client";
 
 import {
@@ -22,51 +21,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { auth, db } from "@/lib/firebase";
+import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { onAuthStateChanged, User } from "firebase/auth";
 
-function getRandomSleepHours() {
-  return parseFloat((Math.random() * 8).toFixed(1));
-}
-
-function getColorClass(hours: number) {
-  if (hours < 2) return "bg-red-500";
-  if (hours < 5) return "bg-yellow-500";
+// 🔹 Get color based on score
+function getScoreColor(score?: number) {
+  if (score == null) return "bg-gray-400"; // no data
+  if (score < 25) return "bg-red-500";
+  if (score < 50) return "bg-orange-500";
+  if (score <= 75) return "bg-yellow-500";
   return "bg-green-500";
 }
 
 function SleepStreakCard() {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
+
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(currentMonth);
+  const [user, setUser] = useState<User | null>(null);
   const [sleepData, setSleepData] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
 
   const start = startOfMonth(new Date(year, month));
   const end = endOfMonth(start);
   const days = eachDayOfInterval({ start, end });
 
-  useEffect(() => {
-    const newSleepData: Record<string, number> = {};
-    days.forEach((day) => {
-      const key = format(day, "yyyy-MM-dd");
-      newSleepData[key] = getRandomSleepHours();
-    });
-    setSleepData(newSleepData);
-  }, [year, month]);
-
   const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
+
+  // 🔹 Track auth
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, []);
+
+  // 🔹 Fetch monthly data from Firestore
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "sleepData"),
+          where("uid", "==", user.uid),
+          where("createdAt", ">=", Timestamp.fromDate(start)),
+          where("createdAt", "<=", Timestamp.fromDate(end))
+        );
+
+        const snap = await getDocs(q);
+        const dataMap: Record<string, number> = {};
+
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.score != null && data.createdAt instanceof Timestamp) {
+            const dateKey = format(data.createdAt.toDate(), "yyyy-MM-dd");
+            dataMap[dateKey] = data.score;
+          }
+        });
+
+        setSleepData(dataMap);
+      } catch (err) {
+        console.error("Error fetching sleep streak:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user, year, month]);
 
   return (
     <Card className="backdrop-blur-md bg-black/30 border-none text-white h-full">
@@ -91,6 +118,7 @@ function SleepStreakCard() {
               })}
             </SelectContent>
           </Select>
+
           <Select
             onValueChange={(val) => setMonth(Number(val))}
             defaultValue={String(currentMonth)}
@@ -108,36 +136,40 @@ function SleepStreakCard() {
           </Select>
         </div>
       </CardHeader>
+
       <CardContent>
-       <div className="grid grid-cols-7 gap-4 text-muted-foreground text-xs mb-1">
+        <div className="grid grid-cols-7 gap-4 text-muted-foreground text-xs mb-1">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
             <span key={d} className="w-8 text-center">
               {d}
             </span>
           ))}
         </div>
+
         <div className="grid grid-cols-7 gap-3">
           {[...Array(getDay(start))].map((_, i) => (
             <div key={`empty-${i}`} className="w-8 h-8"></div>
           ))}
+
           {days.map((day) => {
             const key = format(day, "yyyy-MM-dd");
-            const sleepHours = sleepData[key];
-            const color = getColorClass(sleepHours);
+            const score = sleepData[key];
+            const colorClass = getScoreColor(score);
 
             return (
               <div
                 key={key}
-                className={`w-8 h-8 text-sm flex items-center justify-center rounded-md ${color} text-white`}
-                title={`${sleepHours} hrs`}
+                className={`w-8 h-8 text-sm flex items-center justify-center rounded-md ${colorClass} text-white`}
+                title={score != null ? `Score: ${score}` : "No data"}
               >
                 {format(day, "d")}
               </div>
             );
           })}
         </div>
+
         <p className="text-sm mt-4 text-muted-foreground text-center">
-          Sleep data for {months[month]} {year}
+          {loading ? "Loading..." : `Sleep data for ${months[month]} ${year}`}
         </p>
       </CardContent>
     </Card>

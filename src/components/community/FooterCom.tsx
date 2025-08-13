@@ -1,4 +1,4 @@
-import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, } from "react-icons/fa";
+import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, FaGooglePlusSquare, FaPlusCircle, FaPlusSquare, } from "react-icons/fa";
 import { FaMessage, FaRegMessage } from "react-icons/fa6";
 
 export default function Footer() {
@@ -11,8 +11,8 @@ export default function Footer() {
           <a href="/message" className="hover:text-white transition" title="Friends">
             <FaFacebookMessenger />
           </a>
-          <a href="#" className="hover:text-white transition" title="Groups/Channels">
-            <FaUsers />
+          <a href="#" className="hover:text-white transition" title="New Post">
+            <FaPlusSquare/>
           </a>
 
           {/* Search Bar */}

@@ -208,7 +208,7 @@ return (
         </div>
 
         {/* Three Dots Icon */}
-        <button className="p-2 rounded-full hover:bg-white/20 transition">
+        <button className="hidden sm:block p-2 rounded-full hover:bg-white/20 transition">
           <MoreHorizontal size={20} />
         </button>
       </div>

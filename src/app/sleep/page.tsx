@@ -14,6 +14,7 @@ import SleepDataCard from "@/components/sleep/SleepDataCard";
 import { CustomTimePicker } from "@/components/ui/custom-time-picker";
 import { FaBell } from "react-icons/fa6";
 import { FaVolumeUp } from "react-icons/fa";
+import SleepTracker from "@/components/sleep/SleepTracker";
 
 
 export default function SleepPage() {
@@ -27,13 +28,13 @@ export default function SleepPage() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="fixed top-0 left-0 h-screen z-20">
+      <div className="fixed sm:relative top-0 left-0 h-screen z-50">
         <Sidebar />
       </div>
 
       {/* Main */}
       <div
-        className={`flex flex-col  bg-[#202020] flex-1 transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}
+        className={`flex flex-col  bg-[#202020] flex-1 transition-all duration-300 pl-16 sm:pl-0 `}
       >
         <div className="sticky top-0 z-10">
           <HeaderApp />
@@ -53,7 +54,7 @@ export default function SleepPage() {
                 <div className="flex flex-col gap-4">
                   {/* Sleep Score */}
                   <Card className="bg-transparent h-full backdrop-blur-xl text-white border-none  flex items-center shadow-none justify-center">
-                    <SleepScoreCard sleepDuration={sleepDuration} />
+                    <SleepScoreCard/>
                   </Card>
 
                   {/* Bedtime Reminders Side-by-Side */}
@@ -99,12 +100,7 @@ export default function SleepPage() {
 
                     {/* Bedtime Reminder Part 2 */}
                     <Card className="backdrop-blur-xl bg-black/30 border-none text-white w-1/2 hover:scale-105 transition-transform h-full duration-200">
-                      <CardHeader>
-                        <CardTitle className="text-base">🔔 Reminder Settings</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm">Reminder is ON and will notify you nightly.</p>
-                      </CardContent>
+                      <SleepTracker/>
                     </Card>
                   </div>
                 </div>
@@ -208,7 +204,7 @@ export default function SleepPage() {
                 </div>
 
                 {/* Column 3: Sleep Streak (tall card) */}
-                <Card className="backdrop-blur-xl bg-transparent border-none text-white h-full">
+                <Card className="backdrop-blur-xl bg-transparent border-none text-white h-full pb-40 sm:pb-0">
                   <SleepStreakCard />
                 </Card>
               </div>

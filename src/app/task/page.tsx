@@ -78,13 +78,13 @@ const handleDeleteTask = async (taskId: string) => {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="z-[10000] relative">
+      <div className="z-[10000] sm:relative fixed">
       <Sidebar />
     </div>
 
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 pl-16 sm:pl-0">
         {/* Header */}
         <HeaderApp />
 
@@ -172,7 +172,7 @@ const handleDeleteTask = async (taskId: string) => {
   </div>
 </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[calc(100vh-210px)]">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[calc(100vh-370px)] sm:max-h-[calc(100vh-210px)]">
   {filteredTasks.map((task) => {
     const completedCount = task.subTasks.filter((s) => s.done).length;
     const totalCount = task.subTasks.length;
