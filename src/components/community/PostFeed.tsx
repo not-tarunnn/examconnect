@@ -6,42 +6,44 @@ import { useEffect, useRef, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function PostFeed() {
-  const { posts, loadMore, isValidating, isLoading } = usePosts();
+  const { posts, isValidating, isLoading, hasMore } = usePosts(); // <-- hasMore from hook
   const loadingRef = useRef<HTMLDivElement>(null);
-  const loadMoreCalled = useRef(false);
-
+  const isFetchingRef = useRef(false);
+  const loadMore = async (): Promise<void> => {
+  }
   const handleIntersection = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting && !isValidating && !loadMoreCalled.current) {
-        loadMoreCalled.current = true;
-        loadMore();
-        // Reset the flag after a short delay
-        setTimeout(() => {
-          loadMoreCalled.current = false;
-        }, 1000);
+      if (
+        target.isIntersecting &&
+        !isValidating &&
+        hasMore && // <-- stop if no more posts
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true;
+        loadMore().finally(() => {
+          isFetchingRef.current = false;
+        });
       }
     },
-    [loadMore, isValidating]
+    [loadMore, isValidating, hasMore]
   );
 
   useEffect(() => {
+    if (!loadingRef.current || !hasMore) return; // <-- don't observe if no more data
+
     const observer = new IntersectionObserver(handleIntersection, {
       root: null,
       rootMargin: "100px",
       threshold: 0.1,
     });
 
-    if (loadingRef.current) {
-      observer.observe(loadingRef.current);
-    }
+    observer.observe(loadingRef.current);
 
     return () => {
-      if (loadingRef.current) {
-        observer.unobserve(loadingRef.current);
-      }
+      observer.disconnect();
     };
-  }, [handleIntersection]);
+  }, [handleIntersection, hasMore]);
 
   if (isLoading && posts.length === 0) {
     return (
@@ -60,28 +62,29 @@ export default function PostFeed() {
         </div>
       ) : (
         <>
-          {posts.map((post, index) => (
-            <div key={`${post.id}-${index}`}>
+          {posts.map((post) => (
+            <div key={post.id}>
               <PostCard post={post} />
             </div>
           ))}
 
-          {/* Infinite scroll trigger */}
-          <div
-            ref={loadingRef}
-            className="flex justify-center items-center py-4 min-h-[60px]"
-          >
-            {isValidating ? (
-              <div className="flex items-center space-x-2 text-gray-400">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Loading more posts...</span>
-              </div>
-            ) : (
-              <div className="text-gray-500 text-sm">
-                Scroll to load more posts
-              </div>
-            )}
-          </div>
+          {hasMore && (
+            <div
+              ref={loadingRef}
+              className="flex justify-center items-center py-4 min-h-[60px]"
+            >
+              {isValidating ? (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Loading more posts...</span>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm">
+                  Scroll to load more posts
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

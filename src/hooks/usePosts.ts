@@ -11,6 +11,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import useSWRInfinite from "swr/infinite";
+import { useState } from "react";
 import { db } from "@/lib/firebase";
 import { PostProps } from "@/components/community/PostCard";
 
@@ -44,63 +45,61 @@ const fetchUserProfile = async (userId: string, isGroup: boolean = false) => {
 // Fetch paginated posts from Firestore
 const fetchPosts = async (
   pageIndex: number,
-  previousPageData: PostProps[] | null
-): Promise<PostProps[]> => {
+  previousPageData: { posts: PostProps[]; lastDoc: QueryDocumentSnapshot<DocumentData> | null } | null
+): Promise<{ posts: PostProps[]; lastDoc: QueryDocumentSnapshot<DocumentData> | null }> => {
   const postsRef = collection(db, "posts");
   let postsQuery = query(postsRef, orderBy("createdAt", "desc"), limit(10));
 
-  // If this is not the first page, use startAfter
-  if (previousPageData && previousPageData.length > 0) {
-    const lastPost = previousPageData[previousPageData.length - 1];
-
-    // Get the last document snapshot for startAfter
-    const snapshot = await getDocs(
-      query(postsRef, orderBy("createdAt", "desc"), limit(10))
-    );
-
-    const lastDoc = snapshot.docs.find((doc) => doc.id === lastPost.id);
-
-    if (lastDoc) {
-      postsQuery = query(postsRef, orderBy("createdAt", "desc"), startAfter(lastDoc), limit(10));
-    }
+  // If this is not the first page, start after the last doc of previous page
+  if (previousPageData && previousPageData.lastDoc) {
+    postsQuery = query(postsRef, orderBy("createdAt", "desc"), startAfter(previousPageData.lastDoc), limit(10));
   }
 
   const snapshot = await getDocs(postsQuery);
 
-  // Fetch posts with author information
-  const postsWithAuthors = await Promise.all(
-    snapshot.docs.map(async (doc: QueryDocumentSnapshot<DocumentData>) => {
-      const data = doc.data();
+  // Inside fetchPosts mapping:
+const postsWithAuthors = await Promise.all(
+  snapshot.docs.map(async (docSnap: QueryDocumentSnapshot<DocumentData>) => {
+    const data = docSnap.data();
 
-      // Fetch author profile
-      const author = await fetchUserProfile(
-        data.authorId || data.userId || "anonymous",
-        data.isGroupPost || false
-      );
+    // ✅ get the correct author UID
+    const authorUid =
+      data.author?.id || data.authorId || data.userId || "anonymous";
 
-      return {
-        id: doc.id,
-        title: data.title,
-        mediaUrl: data.mediaUrl,
-        type: data.type,
-        reactions: data.reactions || { likes: 0, dislikes: 0 },
-        commentsCount: data.commentsCount || 0,
-        views: data.views || 0,
-        author,
-        createdAt: data.createdAt,
-        subreddit: data.subreddit || data.group,
-      } as PostProps;
-    })
-  );
+    const author = await fetchUserProfile(
+      authorUid,
+      data.isGroupPost || false
+    );
 
-  return postsWithAuthors;
+    return {
+      id: docSnap.id,
+      title: data.title,
+      mediaUrl: data.mediaUrl,
+      type: data.type,
+      reactions: data.reactions || { likes: 0, dislikes: 0 },
+      commentsCount: data.commentsCount || 0,
+      views: data.views || 0,
+      author,
+      createdAt: data.createdAt,
+      subreddit: data.subreddit || data.group,
+    } as PostProps;
+  })
+);
+
+  const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+
+  return { posts: postsWithAuthors, lastDoc };
 };
 
-// Hook to use in your app
 export function usePosts() {
-  const getKey = (pageIndex: number, previousPageData: PostProps[] | null) => {
-    if (previousPageData && previousPageData.length === 0) return null; // No more pages
-    return `posts-page-${pageIndex}`; // Cache key
+  const [hasMore, setHasMore] = useState(true);
+
+  const getKey = (
+    pageIndex: number,
+    previousPageData: { posts: PostProps[]; lastDoc: QueryDocumentSnapshot<DocumentData> | null } | null
+  ) => {
+    if (previousPageData && previousPageData.posts.length === 0) return null; // Stop if no more posts
+    return `posts-page-${pageIndex}`;
   };
 
   const {
@@ -109,13 +108,24 @@ export function usePosts() {
     setSize,
     isValidating,
     isLoading,
-  } = useSWRInfinite<PostProps[]>(getKey, fetchPosts);
+  } = useSWRInfinite(getKey, fetchPosts, {
+    onSuccess(data) {
+      // Update hasMore when last fetch has no posts
+      const lastPage = data[data.length - 1];
+      if (lastPage && lastPage.posts.length < 10) {
+        setHasMore(false);
+      }
+    },
+  });
 
-  const posts: PostProps[] = data ? data.flat() : [];
+  const posts: PostProps[] = data ? data.flatMap(page => page.posts) : [];
 
   return {
     posts,
-    loadMore: () => setSize(size + 1),
+    hasMore,
+    loadMore: () => {
+      if (hasMore) setSize(size + 1);
+    },
     isValidating,
     isLoading,
   };

@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, FaGooglePlusSquare, FaPlusCircle, FaPlusSquare, } from "react-icons/fa";
 import { FaMessage, FaRegMessage } from "react-icons/fa6";
+import CreatePostModal from "@/components/community/CreatePostModal";
+
 
 export default function Footer() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
   return (
     <footer className="w-full mt-auto bg-transparent sticky bottom-3  z-10">
       <div className="px-6 py-2 max-w-7xl mr-[16rem] mx-auto">
@@ -11,9 +16,24 @@ export default function Footer() {
           <a href="/message" className="hover:text-white transition" title="Friends">
             <FaFacebookMessenger />
           </a>
-          <a href="#" className="hover:text-white transition" title="New Post">
-            <FaPlusSquare/>
-          </a>
+          {/* Your Plus Button */}
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setIsModalOpen(true);
+        }}
+        className="hover:text-white transition cursor-pointer"
+        title="New Post"
+      >
+        <FaPlusSquare size={24} />
+      </a>
+
+      {/* Modal */}
+      <CreatePostModal
+        isOpen={isModalOpen}
+        onCloseAction={() => setIsModalOpen(false)}
+      />
 
           {/* Search Bar */}
           <div className="relative">
