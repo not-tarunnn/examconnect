@@ -78,7 +78,7 @@ const handleDeleteTask = async (taskId: string) => {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="z-[10000] sm:relative fixed">
+      <div className="z-[49] sm:relative fixed">
       <Sidebar />
     </div>
 
