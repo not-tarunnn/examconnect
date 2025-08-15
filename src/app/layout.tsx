@@ -6,6 +6,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 export const metadata: Metadata = {
   title: 'ExamConnect',
   description: 'Your all-in-one exam preparation community app',
+  other: {
+    'google-adsense-account': 'ca-pub-6676209672905473',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -127,7 +127,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
+    <div className="fixed inset-0 z-49 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
       {/* ❌ Close Button */}
       <button
         onClick={onClose}
