@@ -23,13 +23,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [userTasks, setUserTasks] = useState<Task[]>([]);
 
-  const { lastStreakDate, incrementStreak, setStreaksFromFirestore, checkStreakExpiry } =
-    useStreakStore();
-
-  // ✅ Run expiry check on mount
-  useEffect(() => {
-    checkStreakExpiry();
-  }, [checkStreakExpiry]);
+  const { lastStreakDate, incrementStreak, setStreaksFromFirestore } = useStreakStore();
 
   // 🔹 Listen to streak document live
   useEffect(() => {
@@ -45,16 +39,13 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
           data.longestStreak || 0,
           data.lastStreakDate || null
         );
-
-        // ✅ Check if streak expired after syncing
-        checkStreakExpiry();
       } else {
         useStreakStore.getState().resetStreak();
       }
     });
 
     return () => unsub();
-  }, [setStreaksFromFirestore, checkStreakExpiry]);
+  }, [setStreaksFromFirestore]);
 
   // 🔹 Listen to all tasks for the logged-in user
   useEffect(() => {
