@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
       <HeaderX />
       <main className="max-w-5xl mx-auto px-6 py-20">
         <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
-        <p className="text-sm mb-10 text-gray-600">Effective from: March 3, 2024</p>
+        <p className="text-sm mb-10 text-gray-600">Effective from: August 1, 2025</p>
 
         {sections.map((section, index) => (
           <div key={index} className="mb-12">

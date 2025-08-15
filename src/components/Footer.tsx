@@ -13,9 +13,9 @@ export default function Footer() {
         <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold uppercase translate-x-[1.5em]">
           <a href="/contact" className="hover:text-gray-300 transition  text-white">Get In Touch</a>
           <a href="/terms" className="hover:text-gray-300 transition text-white">Terms of Service</a>
-          <a href="/privacypolicy" className="hover:text-gray-300 transition text-white">Privacy Policy</a>
+          <a href="/privacy-policy" className="hover:text-gray-300 transition text-white">Privacy Policy</a>
           <a href="/conditions" className="hover:text-gray-300 transition text-white">Terms & Conditions</a>
-          <a href="/faqs" className="hover:text-gray-300 transition text-white">FAQs</a>
+          <a href="/about" className="hover:text-gray-300 transition text-white">About Us</a>
           <a href="/privacy#dont-sell" className="hover:text-gray-300 transition text-white">Do Not Sell My Personal Info</a>
         </div>
       </div>

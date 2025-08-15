@@ -29,7 +29,7 @@ export default function FooterX() {
         {/* Links and Copyright */}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-700">
           <a href="#" className="hover:underline">Terms of Use</a>
-          <a href="#" className="hover:underline">Privacy Policy</a>
+          <a href="/privacy-policy" className="hover:underline">Privacy Policy</a>
           <span className="text-gray-500">© 2025 ExamConnect | All rights reserved</span>
         </div>
       </div>

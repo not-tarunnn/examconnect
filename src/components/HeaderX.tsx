@@ -8,7 +8,7 @@ export default function HeaderX() {
     <header className="w-full border-b bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold text-gray-900">
-          YourBrand
+          ExamConnect
         </Link>
         <nav className="space-x-6 text-sm font-medium text-gray-600">
           <Link href="/privacy" className="hover:text-blue-600 transition">

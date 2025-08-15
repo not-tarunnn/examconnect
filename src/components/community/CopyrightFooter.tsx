@@ -8,7 +8,7 @@ export default function CopyrightFooter() {
       <div className="text-xs text-gray-500">
         <div className="flex flex-col space-y-1">
           <div className="flex space-x-2">
-            <a href="/privacypolicy" className="hover:text-gray-300 transition-colors">
+            <a href="/privacy-policy" className="hover:text-gray-300 transition-colors">
               Privacy Policy
             </a>
             <span>•</span>
