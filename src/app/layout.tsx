@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import '../app/globals.css'; // adjust path as needed
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Script from "next/script";
+
 export const metadata: Metadata = {
   title: 'ExamConnect',
   description: 'Your all-in-one exam preparation community app',
@@ -14,6 +16,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* Google AdSense script - loads once globally */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6676209672905473"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="flex flex-col min-h-screen">
         
     

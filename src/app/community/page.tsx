@@ -8,6 +8,7 @@ import PostFeed from "@/components/community/PostFeed";
 import SuggestedGroups from "@/components/community/SuggestedGroups";
 import CopyrightFooter from "@/components/community/CopyrightFooter";
 import { useSidebarStore } from "@/store/useSidebarStore";
+import AdSlot from "@/components/ads/AdSlot";
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState("stats");
@@ -43,7 +44,16 @@ export default function CommunityPage() {
 
           {/* Popular Communities - Closer to posts */}
           <div className="hidden lg:block w-72 flex-shrink-0">
-            <SuggestedGroups />
+          <div className="translate-x-32 fixed">
+            {/* Insert ad */}
+        <AdSlot
+          adClient="ca-pub-6676209672905473"
+          adSlot="1204660986"
+          adFormat="autorelaxed"
+          style={{ display: "block" }}
+        />
+            </div>
+            {/* <SuggestedGroups /> */}
           </div>
         </main> 
 
