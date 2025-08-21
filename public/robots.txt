@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://examconnect.vercel.app/sitemap.xml

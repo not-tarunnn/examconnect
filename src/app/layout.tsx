@@ -7,7 +7,8 @@ import Script from "next/script";
 
 export const metadata: Metadata = {
   title: 'ExamConnect',
-  description: 'Your all-in-one exam preparation community app',
+  description:
+  "ExamConnect helps students conquer exams with balance. Stay productive with study planner, focus mode, habit tracker, and track progress with powerful analytics.",
   other: {
     'google-adsense-account': 'ca-pub-6676209672905473',
   },
