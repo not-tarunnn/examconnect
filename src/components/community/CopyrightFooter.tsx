@@ -12,25 +12,17 @@ export default function CopyrightFooter() {
               Privacy Policy
             </a>
             <span>•</span>
-            <a href="#" className="hover:text-gray-300 transition-colors">
+            <a href="/user-agreement" className="hover:text-gray-300 transition-colors">
               User Agreement
             </a>
             <span>•</span>
-            <a href="#" className="hover:text-gray-300 transition-colors">
+            <a href="/content-policy" className="hover:text-gray-300 transition-colors">
               Content Policy
             </a>
           </div>
           <div className="flex space-x-2">
-            <a href="#" className="hover:text-gray-300 transition-colors">
-              Moderator Code
-            </a>
-            <span>•</span>
-            <a href="#" className="hover:text-gray-300 transition-colors">
-              Help
-            </a>
-            <span>•</span>
-            <a href="#" className="hover:text-gray-300 transition-colors">
-              Careers
+            <a href="/cookie-policy" className="hover:text-gray-300 transition-colors">
+              Cookie Policy
             </a>
           </div>
           <div className="text-center pt-1 mr-14">

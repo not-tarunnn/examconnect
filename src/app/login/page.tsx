@@ -195,35 +195,40 @@ export default function LoginPage() {
       <footer className="text-center text-sm text-gray-700 px-6 pb-6">
         <div className="space-x-4 mb-2">
           <a
-            href="#"
+            href="/terms-and-conditions"
             className="hover:underline text-blue-600 transition-colors duration-200"
           >
-            Terms of Use
+            Terms & Conditions
           </a>
           <a
-            href="/privacypolicy"
+            href="/privacy-policy"
             className="hover:underline text-blue-600  transition-colors duration-200"
           >
             Privacy Policy
           </a>
         </div>
-        <p className="text-gray-600">
-          This site is protected by reCAPTCHA Enterprise.{" "}
-          <a
-            href="#"
-            className="hover:underline  text-blue-600 transition-colors duration-200"
-          >
-            Google’s Privacy Policy
-          </a>{" "}
-          and{" "}
-          <a
-            href="#"
-            className="hover:underline  text-blue-600 transition-colors duration-200"
-          >
-            Terms of Service
-          </a>{" "}
-          apply.
-        </p>
+        <p className="text-xs text-muted-foreground mt-4">
+  This site is protected by reCAPTCHA Enterprise and the Google{" "}
+  <a
+    href="https://policies.google.com/privacy"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-primary hover:underline"
+  >
+    Privacy Policy
+  </a>{" "}
+  and{" "}
+  <a
+    href="https://policies.google.com/terms"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-primary hover:underline"
+  >
+    Terms of Service
+  </a>{" "}
+  apply.
+</p>
+
       </footer>
     </div>
   );

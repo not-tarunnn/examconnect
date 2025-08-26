@@ -32,7 +32,7 @@ export default function Sidebar() {
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
-    { label: "Tasks", href: "/task", icon: <FaClipboardList /> },
+    { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
     { label: "Sleep & Health", href: "/sleep", icon: <FaPlantWilt /> },
     { label: "Community", href: "/community", icon: <FaUsers /> },
   ];
@@ -166,14 +166,14 @@ export default function Sidebar() {
                 className="absolute bottom-16 left-4 w-[85%] bg-[#2f2f2f] rounded-lg shadow-md p-2 text-sm z-50"
               >
                 <Link
-                  href="/profile"
+                  href={`profile/${userData?.username ?? ""}`}
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
                 >
                   <FaUser />
                   Profile
                 </Link>
                 <Link
-                  href="#"
+                  href="/accountsetting"
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
                 >
                   <FaCog />

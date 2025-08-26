@@ -76,7 +76,7 @@ export default function AboutPage() {
                 <Link href="/signup">Get Started</Link>
               </Button>
               <Button asChild variant="outline" className="rounded-2xl px-5 py-5">
-                <Link href="/features">Explore Features</Link>
+                <Link href="/login">Explore Features</Link>
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-2 text-sm text-neutral-500">

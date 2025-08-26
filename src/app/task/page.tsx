@@ -14,6 +14,8 @@ import { FaPlus } from "react-icons/fa";
 import { TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
+import MapCanvasFlow from "@/components/task/MapCanvasFlow";
+import DifficultyRatingModal from "@/components/task/DifficultyRatingModal";
 
 export default function TasksPage() {
 
@@ -24,7 +26,7 @@ export default function TasksPage() {
     year: "numeric",
   });
 
-  const [activeTab, setActiveTab] = useState<"tasks" | "habits">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "map">("tasks");
   const [taskFilter, setTaskFilter] = useState<"pending" | "completed">("pending");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -33,12 +35,53 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [dueDateFilter, setDueDateFilter] = useState<string | null>(null);
+  const [difficultyModalOpen, setDifficultyModalOpen] = useState(false);
+  const [completedTask, setCompletedTask] = useState<Task | null>(null);
 const handleDeleteTask = async (taskId: string) => {
   try {
     await deleteDoc(doc(db, "tasks", taskId));
   } catch (error) {
     console.error("Failed to delete task:", error);
   }
+};
+
+const handleDifficultySubmit = async (rating: number) => {
+  if (!completedTask?.id || !user) {
+    console.error("❌ Missing taskId or user");
+    return;
+  }
+
+  console.log("➡️ Submitting review for task:", completedTask.id);
+
+  try {
+    // 🔑 Get Firebase ID token
+    const token = await user.getIdToken();
+
+    const response = await fetch(`/api/tasks/${completedTask.id}/review`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ send ID token, not raw uid
+      },
+      body: JSON.stringify({ grade: rating }), // ✅ API extracts uid from token
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Server error: ${errText}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Task updated:", result);
+
+  } catch (err) {
+    console.error("💥 Error submitting review:", err);
+  }
+};
+
+const handleDifficultyModalClose = () => {
+  setDifficultyModalOpen(false);
+  setCompletedTask(null);
 };
   // ✅ Auth state tracking
   useEffect(() => {
@@ -113,6 +156,16 @@ const handleDeleteTask = async (taskId: string) => {
   >
     Habits
   </button>
+  <button
+    onClick={() => setActiveTab("map")}
+    className={`px-3 py-1 text-sm font-medium rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+      activeTab === "map"
+        ? "bg-background text-foreground shadow"
+        : "hover:text-foreground"
+    }`}
+  >
+    Map
+  </button>
 </div>
 
 </div>
@@ -145,9 +198,13 @@ const handleDeleteTask = async (taskId: string) => {
       className="border px-3 py-1 rounded"
     >
       <option value="">All Priorities</option>
-      <option value="Low">Low</option>
-      <option value="Medium">Medium</option>
-      <option value="High">High</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+      {/* Legacy support for old format */}
+      <option value="Low">Low (Legacy)</option>
+      <option value="Medium">Medium (Legacy)</option>
+      <option value="High">High (Legacy)</option>
     </select>
 
     <select
@@ -188,6 +245,12 @@ const handleDeleteTask = async (taskId: string) => {
         completed: allDone,
         status: allDone ? "completed" : "pending",
       });
+
+      // Show difficulty rating modal whenever task is completed
+      if (allDone) {
+        setCompletedTask(task);
+        setDifficultyModalOpen(true);
+      }
     };
 
     return (
@@ -229,17 +292,18 @@ const handleDeleteTask = async (taskId: string) => {
 
         {/* Subject & Priority */}
         <div className="text-sm text-gray-300 mb-2">
-          {task.subject} |{" "}
+          {task.subject ? task.subject.split(',').map(s => s.trim()).join(' | ') : 'No subject'} |{" "}
           <span
             className={`font-semibold ${
-              task.priority === "High"
-                ? "text-red-400"
-                : task.priority === "Medium"
-                ? "text-yellow-400"
-                : "text-green-400"
-            }`}
+  task.priority.toLowerCase() === "high"
+    ? "text-red-400"
+    : task.priority.toLowerCase() === "medium"
+    ? "text-yellow-400"
+    : "text-green-400"
+}`}
+
           >
-            {task.priority}
+            {task.priority ? (task.priority.charAt(0).toUpperCase() + task.priority.slice(1).toLowerCase()) : "Medium"}
           </span>
         </div>
 
@@ -278,6 +342,18 @@ const handleDeleteTask = async (taskId: string) => {
     🚧 Habits feature is under development.
   </div>
 )}
+
+          {activeTab === "map" && (
+  <div className="flex-1 relative overflow-hidden">
+    <MapCanvasFlow
+      tasks={tasks}
+      onEditTask={(task) => {
+        setEditingTask(task);
+        setModalOpen(true);
+      }}
+    />
+  </div>
+)}
   
         </div>
 
@@ -293,11 +369,20 @@ const handleDeleteTask = async (taskId: string) => {
 </button>
 
 
-        {/* Modal */}
+        {/* Task Manager Modal */}
         <TaskManagerModal
           open={modalOpen}
           onCloseAction={() => setModalOpen(false)}
           initialTask={editingTask}
+        />
+
+        {/* Difficulty Rating Modal */}
+        <DifficultyRatingModal
+          open={difficultyModalOpen}
+          onCloseAction={handleDifficultyModalClose}
+          onSubmitAction={handleDifficultySubmit}
+          taskTitle={completedTask?.title || ""}
+          existingRating={completedTask?.userRating}
         />
 
         

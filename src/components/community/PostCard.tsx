@@ -7,6 +7,7 @@ import { getAuth } from "firebase/auth";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { useState } from "react";
+import Link from "next/link";
 
 export type PostProps = {
   id: string;
@@ -145,11 +146,14 @@ export default function PostCard({ post }: { post: PostProps }) {
                   e.currentTarget.src = "/api/placeholder/24/24";
                 }}
               />
-              <span className="hover:underline cursor-pointer">
-                {post.author.isGroup
-                  ? `r/${post.author.username}`
-                  : `u/${post.author.username}`}
-              </span>
+              <Link
+  href={`/profile/${post.author.username}`}
+  className="hover:underline cursor-pointer"
+>
+  {post.author.isGroup
+    ? `r/${post.author.username}`
+    : `u/${post.author.username}`}
+</Link>
               <span>•</span>
               <span>{timeAgo}</span>
               {post.subreddit && (
