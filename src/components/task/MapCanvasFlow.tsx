@@ -25,7 +25,7 @@ import ExamConnectHelpButton from '@/components/task/ExamConnectHelpButton';
 import TaskNode from './nodes/TaskNode';
 import SubjectNode from './nodes/SubjectNode';
 import TextNode from './nodes/TextNode';
-
+import { useFlowStore } from '@/store/useFlowStore'
 
 
 interface MapCanvasFlowProps {
@@ -40,8 +40,7 @@ const nodeTypes = {
 };
 
 export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, getPosition } = useFlowStore()
   const [subjects, setSubjects] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
 
@@ -112,55 +111,75 @@ export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps)
   }, [user]);
 
   // Create nodes and edges from tasks and subjects
-  useEffect(() => {
+useEffect(() => {
+  setNodes((prevNodes) => {
+    const prevMap = new Map(prevNodes.map((n) => [n.id, n]));
+
     const newNodes: Node[] = [];
-    const newEdges: Edge[] = [];
 
-    // Create subject nodes
-    subjects.forEach((subject, index) => {
-      newNodes.push({
-        id: `subject-${index}`,
-        type: 'subjectNode',
-        position: { x: 300 + (index * 300), y: 100 },
-        data: { subject },
-        draggable: true,
-      });
-    });
+    // Subjects
+subjects.forEach((subject, index) => {
+  const id = `subject-${index}`;
 
-    // Create task nodes with dynamic height calculation
+  // If the index exists in prevMap, reuse it, otherwise fallback
+  const prevNode = prevMap.get(id);
+
+  newNodes.push({
+    id,
+    type: 'subjectNode',
+    position: prevNode?.position ?? { x: 300 + index * 300, y: 100 },
+    data: { subject },
+    draggable: true,
+  });
+});
+
+
+    // Tasks
     let cumulativeYOffset = 0;
     tasks.forEach((task, index) => {
-      // Get all subjects for this task (comma-separated)
-      const taskSubjects = task.subject ? task.subject.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+      const id = `task-${task.id}`;
+      const taskSubjects = task.subject
+        ? task.subject.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+        : [];
       const firstSubjectIndex = taskSubjects.length > 0 ? subjects.indexOf(taskSubjects[0]) : -1;
 
-      // Calculate dynamic height based on subtasks
       const baseHeight = 140;
       const subtaskHeight = 28;
-      const dynamicHeight = baseHeight + (task.subTasks.length * subtaskHeight);
+      const dynamicHeight = baseHeight + task.subTasks.length * subtaskHeight;
 
-      const taskNode: Node = {
-        id: `task-${task.id}`,
+      newNodes.push({
+        id,
         type: 'taskNode',
-        position: {
-          x: 100 + (firstSubjectIndex >= 0 ? firstSubjectIndex * 300 : 0),
-          y: 300 + cumulativeYOffset
-        },
+        position:
+          prevMap.get(id)?.position ??
+          {
+            x: 100 + (firstSubjectIndex >= 0 ? firstSubjectIndex * 300 : 0),
+            y: 300 + cumulativeYOffset,
+          },
         data: {
           task,
           onToggleSubtask: handleToggleSubtask,
-          onEditTask: onEditTask
+          onEditTask: onEditTask,
         },
         draggable: true,
-        style: {
-          height: dynamicHeight,
-        }
-      };
+        style: { height: dynamicHeight },
+      });
 
-      newNodes.push(taskNode);
+      cumulativeYOffset += dynamicHeight + 50;
+    });
 
-      // Create edges for all connected subjects
-      taskSubjects.forEach(taskSubject => {
+    return newNodes;
+  });
+
+  // edges don’t need persistence
+  setEdges(() => {
+    const newEdges: Edge[] = [];
+    tasks.forEach((task) => {
+      const taskSubjects = task.subject
+        ? task.subject.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+        : [];
+
+      taskSubjects.forEach((taskSubject) => {
         const subjectIndex = subjects.indexOf(taskSubject);
         if (subjectIndex >= 0) {
           newEdges.push({
@@ -178,13 +197,10 @@ export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps)
           });
         }
       });
-
-      cumulativeYOffset += dynamicHeight + 50;
     });
-
-    setNodes(newNodes);
-    setEdges(newEdges);
-  }, [subjects, tasks, setNodes, setEdges, handleToggleSubtask, onEditTask]);
+    return newEdges;
+  });
+}, [subjects, tasks, setNodes, setEdges, handleToggleSubtask, onEditTask]);
 
   // Handle new connections
   const onConnect = useCallback(
@@ -195,15 +211,18 @@ export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps)
 
       if (sourceNode?.type === 'taskNode' && targetNode?.type === 'subjectNode') {
         const newEdge: Edge = {
-          ...params,
-          id: `edge-${params.source}-${params.target}`,
-          type: 'smoothstep',
-          animated: false,
-          style: {
-            stroke: '#6b7280',
-            strokeWidth: 3,
-          },
-        };
+  ...params,
+  id: `edge-${params.source ?? ''}-${params.target ?? ''}`,
+  source: params.source ?? '',   // force string
+  target: params.target ?? '',   // force string
+  type: 'smoothstep',
+  animated: false,
+  style: {
+    stroke: '#6b7280',
+    strokeWidth: 3,
+  },
+};
+
         setEdges((eds) => addEdge(newEdge, eds));
 
         // Update Firebase with new subject connection
@@ -243,7 +262,6 @@ export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps)
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onEdgesChange={(changes) => {
           // Handle edge removal to remove subjects from tasks
@@ -290,11 +308,9 @@ export default function MapCanvasFlow({ tasks, onEditTask }: MapCanvasFlowProps)
           showFitView={true}
           showInteractive={true}
           style={{
-            button: {
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               color: 'white',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-            }
           }}
         />
         <MiniMap 

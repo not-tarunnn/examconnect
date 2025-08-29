@@ -5,7 +5,7 @@ import { Plus, Repeat, X } from "lucide-react";
 import { useStreakStore } from "@/store/useStreakStore";
 import { syncStreakToFirestore } from "@/lib/syncStreak";
 import { auth, db } from "@/lib/firebase";
-import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, addDoc, serverTimestamp } from "firebase/firestore";
 import TaskCard from "@/components/task/TaskCard";
 import type { Task } from "@/types/task";
 
@@ -15,6 +15,7 @@ interface PomodoroModalProps {
 
 const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [sessionDuration, setSessionDuration] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [customMinutes, setCustomMinutes] = useState<number>(0);
 
@@ -24,6 +25,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   const [userTasks, setUserTasks] = useState<Task[]>([]);
 
   const { lastStreakDate, incrementStreak, setStreaksFromFirestore } = useStreakStore();
+  const [hasLogged, setHasLogged] = useState(false);
 
   // 🔹 Listen to streak document live
   useEffect(() => {
@@ -96,6 +98,22 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     }
   }, [timeLeft, isRunning]);
 
+
+  useEffect(() => {
+  const handleUnload = async () => {
+    if (isRunning || timeLeft < 25 * 60) {
+      const durationSpent = (25 * 60) - timeLeft;
+      if (durationSpent > 0) {
+        await logPomodoroSession(durationSpent, selectedTaskId);
+      }
+    }
+  };
+
+  window.addEventListener("beforeunload", handleUnload);
+  return () => window.removeEventListener("beforeunload", handleUnload);
+}, [isRunning, timeLeft, selectedTaskId]);
+
+
   const formatTime = (seconds: number) => {
     if (seconds >= 3600) {
       const hrs = Math.floor(seconds / 3600).toString().padStart(1, "0");
@@ -109,32 +127,69 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     }
   };
 
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeLeft(25 * 60);
-  };
+  const logPomodoroSession = async (duration: number, taskId: string | null) => {
+  const user = auth.currentUser;
+  if (!user) return;
 
-  const handlePomodoroComplete = async () => {
-    const now = new Date();
-    const todayISO = new Date(now.toDateString()).toISOString();
-    const last = lastStreakDate ? new Date(lastStreakDate) : null;
-    const isSameDay = last && new Date(last.toDateString()).toISOString() === todayISO;
+  await addDoc(collection(db, "pomodoroLogs"), {
+    uid: user.uid,
+    taskId: taskId || null,
+    duration, // in seconds
+    createdAt: serverTimestamp(),
+  });
+};
 
-    if (!isSameDay) {
-      incrementStreak(todayISO);
-      await syncStreakToFirestore();
+const handleReset = async () => {
+  if (!hasLogged && timeLeft < sessionDuration) {
+    const durationSpent = sessionDuration - timeLeft;
+    await logPomodoroSession(durationSpent, selectedTaskId);
+    setHasLogged(true);
+  }
+  setIsRunning(false);
+  setTimeLeft(sessionDuration); // reset to planned duration
+};
+
+
+const handlePomodoroComplete = async () => {
+  if (hasLogged) return;
+
+  // streak logic (same as before)
+  const now = new Date();
+  const todayISO = new Date(now.toDateString()).toISOString();
+  const last = lastStreakDate ? new Date(lastStreakDate) : null;
+  const isSameDay = last && new Date(last.toDateString()).toISOString() === todayISO;
+
+  if (!isSameDay) {
+    incrementStreak(todayISO);
+    await syncStreakToFirestore();
+  }
+
+  // Log full session duration
+  await logPomodoroSession(sessionDuration, selectedTaskId);
+  setHasLogged(true);
+};
+
+const handleClose = async () => {
+  if (!hasLogged && (isRunning || timeLeft < sessionDuration)) {
+    const durationSpent = sessionDuration - timeLeft;
+    if (durationSpent > 0) {
+      await logPomodoroSession(durationSpent, selectedTaskId);
+      setHasLogged(true);
     }
-  };
+  }
+  onClose();
+};
+
 
   return (
     <div className="fixed inset-0 z-49 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
       {/* ❌ Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition"
-      >
-        <X className="w-7 h-7" />
-      </button>
+    <button
+      onClick={handleClose}
+      className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition"
+    >
+      <X className="w-7 h-7" />
+    </button>
 
       {/* ✅ Selected Task Display (Top-left) */}
       <div className="absolute top-3 left-24 max-w-xl">
@@ -188,6 +243,8 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
       onClick={() => {
         setIsRunning(false);
         setTimeLeft(minutes * 60);
+        setSessionDuration(minutes * 60); // 👈 track planned duration
+        setHasLogged(false);              // 👈 reset logging for new session
       }}
       className="w-14 h-14 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-white font-bold"
     >
@@ -195,19 +252,24 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
     </button>
   ))}
 
+
   {/* Custom Time Input & Button */}
 <div className="flex items-center gap-2">
-    <button
-    onClick={() => {
-      if (customMinutes && customMinutes > 0) {
-        setIsRunning(false);
-        setTimeLeft(customMinutes * 60);
-      }
-    }}
-    className="w-14 h-14 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-black font-bold"
-  >
-    ⌛
-  </button>
+   <button
+  onClick={() => {
+    if (customMinutes && customMinutes > 0) {
+      const secs = customMinutes * 60;
+      setIsRunning(false);
+      setTimeLeft(secs);
+      setSessionDuration(secs); // track duration
+      setHasLogged(false);
+    }
+  }}
+  className="w-14 h-14 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-black font-bold"
+>
+  ⌛
+</button>
+
   <input
     type="number"
     min={1}

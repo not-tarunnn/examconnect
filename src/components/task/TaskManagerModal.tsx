@@ -39,7 +39,7 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
   const [title, setTitle] = useState("");
   const [subTasks, setSubTasks] = useState([{ title: "", done: false }]);
   const [subject, setSubject] = useState("");
-  const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Low");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("low");
   const [dueDate, setDueDate] = useState("");
   const [completed, setCompleted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,7 +57,7 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
       setTitle("");
       setSubTasks([{ title: "", done: false }]);
       setSubject("");
-      setPriority("Low");
+      setPriority("low");
       setDueDate("");
       setCompleted(false);
     }
@@ -210,15 +210,15 @@ return (
           <Label className="text-sm text-gray-300">Priority</Label>
           <Select
             value={priority}
-            onValueChange={(val) => setPriority(val as "Low" | "Medium" | "High")}
+            onValueChange={(val) => setPriority(val as "low" | "medium" | "high")}
           >
             <SelectTrigger className="bg-zinc-900 text-white border-zinc-700">
               <SelectValue placeholder="Select Priority" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem value="Low">Low</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="High">High</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -233,21 +233,7 @@ return (
           />
         </div>
 
-        <div className="flex items-center space-x-2 pt-2">
-  <Checkbox
-    id="completed"
-    checked={completed}
-    onCheckedChange={(val) => setCompleted(!!val)}
-    className="border border-white bg-transparent data-[state=checked]:bg-white data-[state=checked]:text-black transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 focus:outline-none"
-  />
-  <Label
-    htmlFor="completed"
-    className="text-white text-sm font-medium"
-  >
-    Mark as Completed
-  </Label>
-</div>
-
+        
         <div className="pt-4 flex justify-between">
           <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-500">
             Save

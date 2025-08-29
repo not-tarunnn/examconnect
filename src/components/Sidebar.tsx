@@ -8,8 +8,6 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase"; // adjust path if needed
 import {
   FaHome,
-  FaCheckCircle,
-  FaMoon,
   FaUsers,
   FaCog,
   FaStar,
@@ -20,7 +18,8 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { FaAnkh, FaBitcoin, FaPlantWilt, FaSimCard } from "react-icons/fa6";
+import {  FaPlantWilt } from "react-icons/fa6";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -33,7 +32,7 @@ export default function Sidebar() {
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
     { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
-    { label: "Sleep & Health", href: "/sleep", icon: <FaPlantWilt /> },
+    { label: "Sleep ", href: "/sleep", icon: <FaPlantWilt /> },
     { label: "Community", href: "/community", icon: <FaUsers /> },
   ];
 
@@ -66,7 +65,7 @@ export default function Sidebar() {
   return (
       <div
        className={`h-screen ${
-       collapsed ? "w-20 bg-[#202020]" : "w-64 bg-[#181818]"
+       collapsed ? "w-16 bg-[#202020]" : "w-64 bg-[#181818]"
        } text-white flex flex-col justify-between border-r border-gray-800 shadow-md transition-all duration-300 relative`}
         >
 
@@ -80,7 +79,7 @@ export default function Sidebar() {
           )}
           <button
             onClick={toggle}
-            className="p-2 hover:bg-[#2f2f2f] rounded-md transition text-white"
+            className="py-2 px-2 hover:bg-[#2f2f2f] rounded-md transition text-white"
             title={collapsed ? "Expand" : "Collapse"}
           >
             <FaBars />
@@ -90,15 +89,36 @@ export default function Sidebar() {
         {/* Nav Links */}
         <nav className="flex flex-col space-y-2 mt-4 text-md">
           {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg transition text-white hover:bg-[#2f2f2f]"
-            >
-              {item.icon}
-              {!collapsed && item.label}
-            </Link>
-          ))}
+<Link
+  key={item.label}
+  href={item.href}
+  className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f]"
+>
+  {/* Icon always visible, never animates */}
+<div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+  {item.icon}
+</div>
+
+
+  {/* Label fades in/out */}
+  <AnimatePresence mode="wait">
+    {!collapsed && (
+      <motion.span
+        key={item.label}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="whitespace-nowrap"
+      >
+        {item.label}
+      </motion.span>
+    )}
+  </AnimatePresence>
+</Link>
+
+
+))}
         </nav>
       </div>
 
@@ -112,12 +132,30 @@ export default function Sidebar() {
           {!collapsed && "Premium"}
         </Link> */}
         <Link
-          href="/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
-        >
-          <FaCog />
-          {!collapsed && "Settings"}
-        </Link>
+  href="/settings"
+  className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
+>
+  {/* Icon always stays */}
+  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+    <FaCog />
+  </div>
+
+  {/* Label fades in/out smoothly */}
+  <AnimatePresence mode="wait">
+    {!collapsed && (
+      <motion.span
+        key="settings-label"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="whitespace-nowrap"
+      >
+        Settings
+      </motion.span>
+    )}
+  </AnimatePresence>
+</Link>
 
         {/* Dropdown */}
         {user && (
@@ -125,7 +163,7 @@ export default function Sidebar() {
             <button
   ref={buttonRef}
   onClick={() => setDropdownOpen((prev) => !prev)}
-  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#2f2f2f] rounded-lg transition text-white"
+  className="w-full flex items-center gap-3 px-0 py-2 hover:bg-[#2f2f2f] rounded-lg transition text-white"
   title={user.email ?? "Account"}
 >
   {userData?.profilePicture ? (
@@ -144,18 +182,24 @@ export default function Sidebar() {
   </div>
 )}
 
+  <AnimatePresence mode="wait">
   {!collapsed && userData && (
-    <div className="flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col"
+    >
       <span className="text-base font-bold mr-auto text-white">
         {userData.fullName || "User"}
       </span>
       {userData.username && (
-        <span className="text-xs text-gray-400">
-          @{userData.username}
-        </span>
+        <span className="text-xs text-gray-400">@{userData.username}</span>
       )}
-    </div>
+    </motion.div>
   )}
+</AnimatePresence>
 </button>
 
 

@@ -170,7 +170,7 @@ export default function Step1() {
                     <div className="mt-1">
                       <Input
                         id="username"
-                        placeholder="e.g., study_master"
+                        placeholder="Emmy Noether"
                         value={username}
                         onChange={handleUsernameChange}
                       />

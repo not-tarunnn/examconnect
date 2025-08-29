@@ -45,7 +45,7 @@ export default function SleepPage() {
           <Tabs defaultValue="basic" className="w-full flex flex-col items-center">
             <TabsList className="mb-4">
               <TabsTrigger value="basic">Sleep</TabsTrigger>
-              <TabsTrigger value="advanced">Health</TabsTrigger>
+              {/* <TabsTrigger value="advanced">Health</TabsTrigger> */}
             </TabsList>
 
             <TabsContent value="basic" className="w-full">
@@ -210,11 +210,11 @@ export default function SleepPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="advanced" className="w-full">
+            {/* <TabsContent value="advanced" className="w-full">
                 <div className="flex-1 flex items-center justify-center text-muted-foreground text-xl font-medium">
     🚧 Health feature is under development.
   </div>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </div>
 

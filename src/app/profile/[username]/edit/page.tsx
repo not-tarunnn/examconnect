@@ -315,7 +315,7 @@ export default function EditProfilePage() {
       {/* Cover */}
       <div className="relative">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="h-40 w-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
-        <div className="max-w-5xl mx-auto px-4 -mt-12">
+        <div className="max-w-5xl mx-auto px-4 -mt-6">
           <div className="flex items-end gap-4">
             {/* Avatar with hover edit overlay */}
             <div className="group relative h-24 w-24 rounded-2xl overflow-hidden ring-4 ring-background bg-zinc-900">
@@ -393,27 +393,66 @@ export default function EditProfilePage() {
                 </div>
 
                 <div className="grid gap-2">
+<div className="grid gap-2">
   <Label htmlFor="targetExam">Target Exam</Label>
   <select
     id="targetExam"
     className="h-10 rounded-md border bg-transparent px-3 text-sm"
-    value={form.targetExam}
-    onChange={(e) => setForm((f) => ({ ...f, targetExam: e.target.value }))}
+    value={
+      ["NEET", "JEE", "UPSC-CSE", "CUET"].includes(form.targetExam)
+        ? form.targetExam
+        : "Others"
+    }
+    onChange={(e) => {
+      const value = e.target.value
+      setForm((f) => ({
+        ...f,
+        targetExam: value === "Others" ? "" : value, // reset if "Others"
+      }))
+    }}
   >
     <option value="">Select exam</option>
     <option value="NEET">NEET</option>
     <option value="JEE">JEE</option>
-    <option value="UPSC">UPSC</option>
+    <option value="UPSC-CSE">UPSC-CSE</option>
     <option value="CUET">CUET</option>
     <option value="Others">Others</option>
   </select>
+
+  {/* If "Others" is selected, show text input */}
+  {(!["NEET", "JEE", "UPSC-CSE", "CUET"].includes(form.targetExam)) && (
+    <input
+      type="text"
+      placeholder="Enter your exam"
+      className="h-10 rounded-md border bg-transparent px-3 text-sm"
+      value={form.targetExam}
+      onChange={(e) =>
+        setForm((f) => ({ ...f, targetExam: e.target.value }))
+      }
+    />
+  )}
+</div>
 </div>
 
+               <div className="grid gap-2">
+  <Label htmlFor="classLevel">Class Level</Label>
+  <select
+    id="classLevel"
+    value={form.classLevel}
+    onChange={(e) =>
+      setForm((f) => ({ ...f, classLevel: e.target.value }))
+    }
+    className="h-10 border rounded-lg p-2"
+  >
+    <option value="">Select your class level</option>
+    <option value="Class 11">Class 11</option>
+    <option value="Class 12">Class 12</option>
+    <option value="Undergraduate">Undergraduate</option>
+    <option value="Graduate">Graduate</option>
+    <option value="Post-Graduate">Post-Graduate</option>
+  </select>
+</div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="classLevel">Class Level</Label>
-                  <Input id="classLevel" value={form.classLevel} onChange={(e) => setForm((f) => ({ ...f, classLevel: e.target.value }))} placeholder="11, 12, etc." />
-                </div>
               </div>
 
               {message ? <div className="text-sm text-muted-foreground">{message}</div> : null}

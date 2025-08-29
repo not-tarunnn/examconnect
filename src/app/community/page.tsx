@@ -45,15 +45,15 @@ export default function CommunityPage() {
           {/* Popular Communities - Closer to posts */}
           <div className="hidden lg:block w-72 flex-shrink-0">
           <div className="translate-x-32 fixed">
-            {/* Insert ad */}
+            {/* Insert ad
         <AdSlot
           adClient="ca-pub-6676209672905473"
           adSlot="1204660986"
           adFormat="autorelaxed"
           style={{ display: "block" }}
-        />
+        /> */}
             </div>
-            {/* <SuggestedGroups /> */}
+           <SuggestedGroups /> 
           </div>
         </main> 
 
