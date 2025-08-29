@@ -76,9 +76,9 @@ const TaskNode = memo(({ data, selected }: NodeProps<TaskNodeData>) => {
           {task.subject ? task.subject.split(',').map(s => s.trim()).join(' | ') : 'No subject'} |{" "}
           <span
             className={`font-semibold ${
-              task.priority === "High"
+              task.priority === "high"
                 ? "text-red-400"
-                : task.priority === "Medium"
+                : task.priority === "medium"
                 ? "text-yellow-400"
                 : "text-green-400"
             }`}

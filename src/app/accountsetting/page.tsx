@@ -92,7 +92,7 @@ const fadeUp = {
 };
 
 export default function AccountSettingsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -179,7 +179,8 @@ export default function AccountSettingsPage() {
 
   async function handleLogout() {
     try {
-      await signOut?.();
+      // TODO: Implement sign out logic here, e.g. call your auth provider's signOut method
+      alert("Sign out logic not implemented.");
     } catch (e) {
       console.error(e);
     }

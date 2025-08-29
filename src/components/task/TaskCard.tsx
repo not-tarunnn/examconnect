@@ -45,9 +45,9 @@ export default function TaskCard({ task }: TaskCardProps) {
         {task.subject} |{" "}
         <span
           className={`font-semibold ${
-            task.priority === "High"
+            task.priority === "high"
               ? "text-red-400"
-              : task.priority === "Medium"
+              : task.priority === "medium"
               ? "text-yellow-400"
               : "text-green-400"
           }`}
