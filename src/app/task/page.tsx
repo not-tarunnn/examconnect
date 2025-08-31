@@ -18,7 +18,8 @@ import MapCanvasFlow from "@/components/task/MapCanvasFlow";
 import DifficultyRatingModal from "@/components/task/DifficultyRatingModal";
 
 export default function TasksPage() {
-
+  
+  const today = new Date().toISOString().split("T")[0]; 
   const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -34,7 +35,7 @@ export default function TasksPage() {
   const [user, setUser] = useState<User | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
-  const [dueDateFilter, setDueDateFilter] = useState<string | null>(null);
+  const [dueDateFilter, setDueDateFilter] = useState<string | null>(today);
   const [difficultyModalOpen, setDifficultyModalOpen] = useState(false);
   const [completedTask, setCompletedTask] = useState<Task | null>(null);
 const handleDeleteTask = async (taskId: string) => {
@@ -54,25 +55,13 @@ const handleDifficultySubmit = async (rating: number) => {
   console.log("➡️ Submitting review for task:", completedTask.id);
 
   try {
-    // 🔑 Get Firebase ID token
-    const token = await user.getIdToken();
-
-    const response = await fetch(`/api/tasks/${completedTask.id}/review`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ send ID token, not raw uid
-      },
-      body: JSON.stringify({ grade: rating }), // ✅ API extracts uid from token
+    // Update the task directly in Firestore with the rating
+    const taskRef = doc(db, "tasks", completedTask.id);
+    await updateDoc(taskRef, {
+      userRating: rating, // Save the rating in the Firestore task document
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Server error: ${errText}`);
-    }
-
-    const result = await response.json();
-    console.log("✅ Task updated:", result);
+    console.log("✅ Task updated with new difficulty rating");
 
   } catch (err) {
     console.error("💥 Error submitting review:", err);
@@ -198,13 +187,9 @@ const handleDifficultyModalClose = () => {
       className="border px-3 py-1 rounded"
     >
       <option value="">All Priorities</option>
-      <option value="low">Low</option>
-      <option value="medium">Medium</option>
-      <option value="high">High</option>
-      {/* Legacy support for old format */}
-      <option value="Low">Low (Legacy)</option>
-      <option value="Medium">Medium (Legacy)</option>
-      <option value="High">High (Legacy)</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
     </select>
 
     <select
@@ -221,11 +206,11 @@ const handleDifficultyModalClose = () => {
     </select>
 
     <input
-      type="date"
-      value={dueDateFilter || ""}
-      onChange={(e) => setDueDateFilter(e.target.value || null)}
-      className="border px-3 py-1 rounded"
-    />
+  type="date"
+  value={dueDateFilter || today}
+  onChange={(e) => setDueDateFilter(e.target.value || null)}
+  className="border px-3 py-1 rounded"
+/>
   </div>
 </div>
 
@@ -377,13 +362,15 @@ const handleDifficultyModalClose = () => {
         />
 
         {/* Difficulty Rating Modal */}
-        <DifficultyRatingModal
-          open={difficultyModalOpen}
-          onCloseAction={handleDifficultyModalClose}
-          onSubmitAction={handleDifficultySubmit}
-          taskTitle={completedTask?.title || ""}
-          existingRating={completedTask?.userRating}
-        />
+<DifficultyRatingModal
+  open={difficultyModalOpen}
+  onCloseAction={handleDifficultyModalClose}
+  onSubmitAction={handleDifficultySubmit}
+  taskTitle={completedTask?.title || ""}
+  existingRating={completedTask?.userRating}
+  taskId={completedTask?.id || ""}  // Ensure taskId is passed
+/>
+
 
         
       </div>

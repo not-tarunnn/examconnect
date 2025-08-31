@@ -40,9 +40,9 @@ export default function Footer() {
             <input
               type="text"
               placeholder="Search..."
-              className="w-64 bg-white border border-gray-300 rounded-full px-3 py-1 pl-8 text-black placeholder-gray-500 text-sm focus:outline-none focus:border-none focus:ring-10 focus:ring-none"
+              className="w-64 bg-white/50 backdrop-blur-3xl border border-white/10 rounded-full px-3 py-1 pl-8 shadow-2xl text-black/80 placeholder-black/65 text-sm focus:outline-none focus:border-none focus:ring-10 focus:ring-none"
             />
-            <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs" />
+            <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-black text-xs" />
           </div>
 
           {/* Right icons */}

@@ -39,7 +39,7 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
   const [title, setTitle] = useState("");
   const [subTasks, setSubTasks] = useState([{ title: "", done: false }]);
   const [subject, setSubject] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("low");
+  const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Low");
   const [dueDate, setDueDate] = useState("");
   const [completed, setCompleted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,7 +57,7 @@ export default function TaskManagerModal({ open, onCloseAction, initialTask }: P
       setTitle("");
       setSubTasks([{ title: "", done: false }]);
       setSubject("");
-      setPriority("low");
+      setPriority("Low");
       setDueDate("");
       setCompleted(false);
     }
@@ -210,15 +210,15 @@ return (
           <Label className="text-sm text-gray-300">Priority</Label>
           <Select
             value={priority}
-            onValueChange={(val) => setPriority(val as "low" | "medium" | "high")}
+            onValueChange={(val) => setPriority(val as "Low" | "Medium" | "High")}
           >
             <SelectTrigger className="bg-zinc-900 text-white border-zinc-700">
               <SelectValue placeholder="Select Priority" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="Low">Low</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="High">High</SelectItem>
             </SelectContent>
           </Select>
         </div>

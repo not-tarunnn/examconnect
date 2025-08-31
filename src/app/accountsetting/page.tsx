@@ -398,7 +398,7 @@ export default function AccountSettingsPage() {
                           onClick={() => setPrefs((s) => ({ ...s, theme: t }))}
                           className="capitalize"
                         >
-                          {t === "light" ? <Sun className="h-4 w-4 mr-2" /> : t === "dark" ? <Moon className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />} {t}
+                          {t === "light" ? <Sun className="h-4 w-4 mr-0" /> : t === "dark" ? <Moon className="h-4 w-4 mr-0" /> : <Globe className="h-4 w-4 -mr-2" />} {t}
                         </Button>
                       ))}
                     </div>

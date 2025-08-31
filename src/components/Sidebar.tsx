@@ -204,34 +204,37 @@ export default function Sidebar() {
 
 
             {/* Dropdown Panel */}
-            {dropdownOpen && !collapsed && (
-              <div
-                ref={dropdownRef}
-                className="absolute bottom-16 left-4 w-[85%] bg-[#2f2f2f] rounded-lg shadow-md p-2 text-sm z-50"
-              >
-                <Link
-                  href={`profile/${userData?.username ?? ""}`}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
-                >
-                  <FaUser />
-                  Profile
-                </Link>
-                <Link
-                  href="/accountsetting"
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
-                >
-                  <FaCog />
-                  Account Settings
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-red-600 rounded-md mt-1"
-                >
-                  <FaSignOutAlt />
-                  Logout
-                </button>
-              </div>
-            )}
+            {dropdownOpen && (
+  <div
+    ref={dropdownRef}
+    className={`absolute bottom-16 ${
+      collapsed ? "left-0" : "left-0"
+    } w-48 bg-[#2f2f2f] rounded-lg shadow-md p-2 text-sm z-50`}
+  >
+    <Link
+      href={`profile/${userData?.username ?? ""}`}
+      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
+    >
+      <FaUser />
+      Profile
+    </Link>
+    <Link
+      href="/accountsetting"
+      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
+    >
+      <FaCog />
+      Account Settings
+    </Link>
+    <button
+      onClick={handleLogout}
+      className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-red-600 rounded-md mt-1"
+    >
+      <FaSignOutAlt />
+      Logout
+    </button>
+  </div>
+)}
+
           </div>
         )}
       </div>

@@ -4,7 +4,7 @@ export type Task = {
   title: string;
   subTasks: { title: string; done: boolean }[];
   subject: string;
-  priority: "low" | "medium" | "high"; // Updated to match SM-18 format
+  priority: "Low" | "Medium" | "High"; // Updated to match SM-18 format
   dueDate: string;
   createdAt: string;
   completed: boolean;

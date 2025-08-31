@@ -1,16 +1,18 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
+import { db } from "@/lib/firebase"; // Assuming you're using Firebase for Firestore
+import { doc, updateDoc } from "firebase/firestore"; // Firebase Firestore methods
+import SM18 from "@/lib/sm18";  // Import your SM18 algorithm
 
 type DifficultyRatingModalProps = {
   open: boolean;
   onCloseAction: () => void;
-  onSubmitAction: (rating: number) => void;
+  onSubmitAction: (rating: number, priority: string) => void;
   taskTitle: string;
   existingRating?: number;
+  taskId: string; // Pass the taskId to update the priority in Firestore
 };
 
 export default function DifficultyRatingModal({
@@ -19,29 +21,57 @@ export default function DifficultyRatingModal({
   onSubmitAction,
   taskTitle,
   existingRating,
+  taskId,
 }: DifficultyRatingModalProps) {
+  // Initialize states
   const [rating, setRating] = useState<number>(existingRating || 0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [priority, setPriority] = useState<string>("Medium"); // Default priority
 
-  // Update rating when existingRating changes (modal opens with different task)
+  // Ensure that existingRating is properly updated when modal is opened
   useEffect(() => {
     setRating(existingRating || 0);
   }, [existingRating]);
 
-  const handleSubmit = () => {
+  // Handle submit for difficulty rating and call SM18 algorithm
+  const handleSubmit = async () => {
     if (rating > 0) {
-      onSubmitAction(rating);
-      setRating(existingRating || 0);
-      setHoveredRating(0);
-      onCloseAction();
+      // Check that taskId is provided before proceeding
+      if (!taskId) {
+        console.error("No taskId provided!");
+        return;
+      }
+
+      // Call the SM18 algorithm to apply it to the task
+      try {
+        await SM18.applySM18Algorithm(taskId, rating);
+
+        // Update Firestore task with the new rating and priority
+        const taskRef = doc(db, "tasks", taskId);
+        await updateDoc(taskRef, {
+          rating: rating,
+          priority: priority,
+        });
+
+        // Call the parent onSubmitAction function
+        onSubmitAction(rating, priority);
+
+        // Reset state
+        setRating(existingRating || 0);
+        setHoveredRating(0);
+        setPriority("Medium"); // Reset priority to default
+        onCloseAction(); // Close the modal
+      } catch (error) {
+        console.error("Error updating task:", error);
+      }
     }
   };
 
   const handleClose = () => {
-    // Only allow closing if a rating has been submitted
     if (rating > 0) {
       setRating(existingRating || 0);
       setHoveredRating(0);
+      setPriority("Medium"); // Reset priority
       onCloseAction();
     }
   };
@@ -61,7 +91,7 @@ export default function DifficultyRatingModal({
           </p>
           
           <p className="text-center font-medium text-sm truncate text-white">
-            "{taskTitle}"
+            "{taskTitle || "No task title provided"}"
           </p>
           
           <div className="flex justify-center items-center gap-2">
@@ -93,6 +123,20 @@ export default function DifficultyRatingModal({
             {rating === 3 && "Challenging - Got it with effort"}
             {rating === 4 && "Good - Performed well"}
             {rating === 5 && "Easy - Mastered it"}
+          </div>
+
+          {/* Priority selection dropdown */}
+          <div className="text-center">
+            <label className="block text-sm text-gray-400">Set Task Priority</label>
+            <select
+              className="mt-2 bg-[#202020] text-white border border-gray-600 rounded-md p-2"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
           </div>
         </div>
         
