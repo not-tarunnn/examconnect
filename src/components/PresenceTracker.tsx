@@ -11,7 +11,7 @@ const ACTIVE_WINDOW_MS = 60000; // consider "really active" if interacted within
 export default function PresenceTracker() {
   const { user } = useAuth();
   const lastInteractionRef = useRef<number>(Date.now());
-  const intervalRef = useRef<NodeJS.Timer | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!user?.uid) return;

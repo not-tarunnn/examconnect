@@ -32,7 +32,6 @@ const auth = getAuth(app);
 // Firestore instance with safer transport for restricted networks
 const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
-  useFetchStreams: false,
 });
 
 // ✅ Realtime Database instance
