@@ -4,10 +4,34 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 import Sidebar from "@/components/Sidebar";
 import FriendsAndGroupsList from "@/components/message/FandGlist";
 import ChatTab from "@/components/message/ChatTab";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useChatStore } from "@/store/useChatStore";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function MessagesPage() {
   const { collapsed } = useSidebarStore();
   const sidebarWidth = collapsed ? "w-16" : "w-64";
+  const searchParams = useSearchParams();
+  const { setSelectedUser } = useChatStore();
+
+  useEffect(() => {
+    const uid = searchParams.get("uid");
+    if (!uid) return;
+    const run = async () => {
+      const snap = await getDoc(doc(db, "users", uid));
+      if (!snap.exists()) return;
+      const data: any = snap.data();
+      setSelectedUser({
+        uid,
+        username: data.username || "",
+        fullName: data.fullName || data.username || uid,
+        profilePic: data.profilePic || "",
+      });
+    };
+    void run();
+  }, [searchParams, setSelectedUser]);
 
   return (
     <div className="flex h-screen bg-[#202020] text-white">

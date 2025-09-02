@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { rtdb } from "@/lib/firebase"; // ✅ RTDB instance
+import { rtdb, db } from "@/lib/firebase"; // ✅ RTDB + Firestore
 import {
   onChildAdded,
   push,
@@ -9,7 +9,10 @@ import {
   set,
   onValue,
   remove,
+  get,
+  update,
 } from "firebase/database";
+import { doc, onSnapshot } from "firebase/firestore";
 import ChatHeader from "./ChatHeader";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
@@ -24,6 +27,15 @@ export default function ChatTab() {
   const [input, setInput] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingSetRef = useRef(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cleanedRef = useRef(false);
+
+  const [lastActiveSelf, setLastActiveSelf] = useState<number>(0);
+  const [lastActiveOther, setLastActiveOther] = useState<number>(0);
+  const [now, setNow] = useState<number>(Date.now());
+
+  const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
   const chatId = user?.uid && selectedUser?.uid
     ? user.uid < selectedUser.uid
@@ -31,8 +43,8 @@ export default function ChatTab() {
       : `${selectedUser.uid}_${user.uid}`
     : null;
 
-  const typingRef = user && chatId ? ref(rtdb, `typing/${chatId}/${user.uid}`) : null;
-  const otherTypingRef = selectedUser && chatId ? ref(rtdb, `typing/${chatId}/${selectedUser.uid}`) : null;
+  const typingRef = user && chatId ? ref(rtdb, `messages/${chatId}/typing/${user.uid}`) : null;
+  const otherTypingRef = selectedUser && chatId ? ref(rtdb, `messages/${chatId}/typing/${selectedUser.uid}`) : null;
 
 useEffect(() => {
   if (!chatId) return;
@@ -42,45 +54,155 @@ useEffect(() => {
   // ✅ Clear previous messages before loading new ones
   setMessages([]); // 👈 this is key!
 
+  // Ensure participants exist for listing
+  if (user && selectedUser) {
+    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
+    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+  }
+
   const unsubscribe = onChildAdded(messagesRef, (snapshot) => {
+    if (snapshot.key === "typing" || snapshot.key === "participants" || snapshot.key === "lastMessageAt") return; // ignore meta
     setMessages((prev) => [...prev, snapshot.val()]);
   });
 
   return () => unsubscribe();
-}, [chatId]);
+}, [chatId, user?.uid, selectedUser?.uid]);
 
 
   useEffect(() => {
     if (!otherTypingRef) return;
     const unsubscribeTyping = onValue(otherTypingRef, (snapshot) => {
-      setOtherTyping(snapshot.val() === true);
+      setOtherTyping(Boolean(snapshot.val()));
     });
     return () => unsubscribeTyping();
   }, [otherTypingRef]);
 
+  // Ensure typing flag is cleared when tab is hidden/blurred or component unmounts
   useEffect(() => {
     if (!typingRef) return;
-    if (input.length > 0) {
-      set(typingRef, true);
-    } else {
+    const clearTyping = () => {
+      typingSetRef.current = false;
       remove(typingRef);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") clearTyping();
+    };
+    window.addEventListener("blur", clearTyping);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("blur", clearTyping);
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearTyping();
+    };
+  }, [typingRef]);
+
+  // Debounced typing state: set once, refresh timer, clear after idle
+  useEffect(() => {
+    if (!typingRef) return;
+
+    const ensureRemove = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      remove(typingRef);
+      typingSetRef.current = false;
+    };
+
+    if (input.length > 0) {
+      if (!typingSetRef.current) {
+        set(typingRef, true).catch(() => {});
+        typingSetRef.current = true;
+      }
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(ensureRemove, 2000);
+    } else {
+      ensureRemove();
     }
-    const timeout = setTimeout(() => remove(typingRef), 2000);
-    return () => clearTimeout(timeout);
+
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
   }, [input, typingRef]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Track presence (lastActive) for both users from Firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+      const data: any = snap.data();
+      setLastActiveSelf(data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0);
+    });
+    return () => unsub();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!selectedUser?.uid) return;
+    const unsub = onSnapshot(doc(db, "users", selectedUser.uid), (snap) => {
+      const data: any = snap.data();
+      setLastActiveOther(data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0);
+    });
+    return () => unsub();
+  }, [selectedUser?.uid]);
+
+  // Tick clock for comparisons
+  useEffect(() => {
+    const i = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(i);
+  }, []);
+
+  // Cleanup messages if either user has been offline > 10 minutes (preserve metadata)
+  useEffect(() => {
+    if (!chatId) return;
+    if (!lastActiveSelf && !lastActiveOther) return;
+    const selfOffline = lastActiveSelf ? now - lastActiveSelf > OFFLINE_THRESHOLD_MS : false;
+    const otherOffline = lastActiveOther ? now - lastActiveOther > OFFLINE_THRESHOLD_MS : false;
+    if (selfOffline || otherOffline) {
+      if (cleanedRef.current) return;
+      cleanedRef.current = true;
+      const doCleanup = async () => {
+        try {
+          const [typingSnap, participantsSnap, lastAtSnap] = await Promise.all([
+            get(ref(rtdb, `messages/${chatId}/typing`)),
+            get(ref(rtdb, `messages/${chatId}/participants`)),
+            get(ref(rtdb, `messages/${chatId}/lastMessageAt`)),
+          ]);
+          await remove(ref(rtdb, `messages/${chatId}`));
+          const updates: any = {};
+          if (typingSnap.exists()) updates["typing"] = typingSnap.val();
+          if (participantsSnap.exists()) updates["participants"] = participantsSnap.val();
+          if (lastAtSnap.exists()) updates["lastMessageAt"] = lastAtSnap.val();
+          if (Object.keys(updates).length) await update(ref(rtdb, `messages/${chatId}`), updates);
+          setMessages([]);
+        } catch (_) {}
+      };
+      void doCleanup();
+    } else {
+      cleanedRef.current = false;
+    }
+  }, [now, lastActiveSelf, lastActiveOther, chatId]);
+
+  // Cleanup any legacy typing path outside messages/{chatId}
+  useEffect(() => {
+    if (!chatId || !user) return;
+    remove(ref(rtdb, `typing/${chatId}/${user.uid}`)).catch(() => {});
+  }, [chatId, user?.uid]);
+
   const sendMessage = () => {
-    if (!input.trim() || !chatId || !user) return;
+    if (!input.trim() || !chatId || !user || !selectedUser) return;
     const messagesRef = ref(rtdb, `messages/${chatId}`);
     push(messagesRef, {
       text: input,
       sender: user.uid,
       timestamp: Date.now(),
     });
+    update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
+    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
+    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+    if (typingRef) {
+      remove(typingRef);
+      typingSetRef.current = false;
+    }
     setInput("");
   };
 
@@ -115,9 +237,17 @@ useEffect(() => {
     <div ref={messagesEndRef} />
   </div>
 
-  {/* Typing indicator (optional, not scrollable) */}
+  {/* Typing indicator (pinned above input) */}
   {otherTyping && (
-    <div className="text-sm text-gray-400 px-4 pb-1">Typing...</div>
+    <div className="px-4 pb-1">
+      <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020] border border-gray-700 rounded-full px-3 py-1">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+        </span>
+        <span>Typing…</span>
+      </div>
+    </div>
   )}
 
   {/* Input area stays pinned */}

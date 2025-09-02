@@ -12,6 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, CheckCircle2, Edit2, Mail, User, MapPin, Sparkles } from "lucide-react";
 import Link from "next/link";
+import useAuth from "@/hooks/useAuth";
+import FollowButton from "@/components/profile/FollowButton";
+import FollowersFollowing from "@/components/profile/FollowersFollowing";
 
 // --------------------
 // Types
@@ -105,6 +108,7 @@ export default function UsernameProfilePage() {
   const router = useRouter();
   const username = decodeURIComponent(String(params?.username || "")).toLowerCase();
 
+  const { user: authUser } = useAuth();
   const [uid, setUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -206,30 +210,34 @@ export default function UsernameProfilePage() {
               )}
             </div>
 
-            {/* Name + Handle */}
+            {/* Name + Handle with Followers/Following on the right */}
             <div className="flex-1 min-w-0 pb-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight truncate">
-                  {profile.fullName || profile.username || username}
-                </h1>
-               {profile.verified ? (
-  <Badge variant="secondary" className="gap-1">
-    <CheckCircle2 className="h-4 w-4" /> Verified
-  </Badge>
-) : null}
-
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-semibold tracking-tight truncate">
+                      {profile.fullName || profile.username || username}
+                    </h1>
+                    {profile.verified ? (
+                      <Badge variant="secondary" className="gap-1">
+                        <CheckCircle2 className="h-4 w-4" /> Verified
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">@{profile.username || username}</p>
+                </div>
+                {uid ? <FollowersFollowing targetUid={uid} currentUid={authUser?.uid} /> : null}
               </div>
-              <p className="text-sm text-muted-foreground truncate">@{profile.username || username}</p>
             </div>
 
             {/* Actions */}
             <div className="hidden sm:flex gap-2 pb-1">
-              <Button variant="outline" className="rounded-2xl">
+              <Button variant="outline" className="rounded-2xl" onClick={() => router.push(`/message?uid=${uid}`)}>
                 <Mail className="h-4 w-4 mr-2" /> Message
               </Button>
-              <Button className="rounded-2xl">
-                <Sparkles className="h-4 w-4 mr-2" /> Follow
-              </Button>
+              {uid ? (
+                <FollowButton currentUid={authUser?.uid ?? null} targetUid={uid} />
+              ) : null}
             </div>
           </div>
         </div>
@@ -306,12 +314,14 @@ export default function UsernameProfilePage() {
       {/* Mobile Actions */}
       <div className="sm:hidden sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t mt-8">
         <div className="max-w-5xl mx-auto px-4 py-3 flex gap-2">
-          <Button variant="outline" className="flex-1 rounded-2xl">
+          <Button variant="outline" className="flex-1 rounded-2xl" onClick={() => router.push(`/message?uid=${uid}`)}>
             <Mail className="h-4 w-4 mr-2" /> Message
           </Button>
-          <Button className="flex-1 rounded-2xl">
-            <Sparkles className="h-4 w-4 mr-2" /> Follow
-          </Button>
+          {uid ? (
+            <div className="flex-1">
+              <FollowButton currentUid={authUser?.uid ?? null} targetUid={uid} />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

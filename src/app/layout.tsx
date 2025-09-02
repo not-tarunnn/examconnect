@@ -4,6 +4,7 @@ import '../app/globals.css'; // adjust path as needed
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script";
+import PresenceTracker from "@/components/PresenceTracker";
 
 export const metadata: Metadata = {
   title: 'ExamConnect',
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="flex flex-col min-h-screen">
+        <PresenceTracker />
         <main className="flex-grow">{children}</main>
 
         {/* Vercel analytics */}

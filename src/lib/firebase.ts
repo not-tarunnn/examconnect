@@ -8,7 +8,7 @@ import {
   browserLocalPersistence,
   setPersistence,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAI } from "firebase/ai"; // ✅ Firebase AI
 
@@ -29,8 +29,11 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Auth instance
 const auth = getAuth(app);
 
-// Firestore instance
-const db = getFirestore(app);
+// Firestore instance with safer transport for restricted networks
+const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+  useFetchStreams: false,
+});
 
 // ✅ Realtime Database instance
 const rtdb = getDatabase(app);

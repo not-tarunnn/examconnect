@@ -19,7 +19,11 @@ import DifficultyRatingModal from "@/components/task/DifficultyRatingModal";
 
 export default function TasksPage() {
   
-  const today = new Date().toISOString().split("T")[0]; 
+  const getTodayLocal = () => {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // shift to local timezone
+  return d.toISOString().split("T")[0];
+};
   const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -35,7 +39,7 @@ export default function TasksPage() {
   const [user, setUser] = useState<User | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
-  const [dueDateFilter, setDueDateFilter] = useState<string | null>(today);
+  const [dueDateFilter, setDueDateFilter] = useState<string | null>(getTodayLocal());
   const [difficultyModalOpen, setDifficultyModalOpen] = useState(false);
   const [completedTask, setCompletedTask] = useState<Task | null>(null);
 const handleDeleteTask = async (taskId: string) => {
@@ -207,7 +211,7 @@ const handleDifficultyModalClose = () => {
 
     <input
   type="date"
-  value={dueDateFilter || today}
+  value={dueDateFilter || getTodayLocal()}
   onChange={(e) => setDueDateFilter(e.target.value || null)}
   className="border px-3 py-1 rounded"
 />
