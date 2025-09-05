@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { rtdb, db } from "@/lib/firebase"; // ✅ RTDB + Firestore
+import { rtdb, db } from "@/lib/firebase";
 import {
   onChildAdded,
   push,
@@ -16,12 +16,12 @@ import { doc, onSnapshot } from "firebase/firestore";
 import ChatHeader from "./ChatHeader";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
-import { ScrollArea } from "@/components/ui/scroll-area"; // adjust import if needed
+import { motion, AnimatePresence } from "framer-motion";
+import { Smile, Paperclip, Send } from "lucide-react";
 
 export default function ChatTab() {
-    
-  const { user } = useAuth(); // always called
-  const { selectedUser } = useChatStore(); // always called
+  const { user } = useAuth();
+  const { selectedUser } = useChatStore();
 
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
@@ -35,39 +35,47 @@ export default function ChatTab() {
   const [lastActiveOther, setLastActiveOther] = useState<number>(0);
   const [now, setNow] = useState<number>(Date.now());
 
-  const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+  const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
 
-  const chatId = user?.uid && selectedUser?.uid
-    ? user.uid < selectedUser.uid
-      ? `${user.uid}_${selectedUser.uid}`
-      : `${selectedUser.uid}_${user.uid}`
-    : null;
+  const chatId =
+    user?.uid && selectedUser?.uid
+      ? user.uid < selectedUser.uid
+        ? `${user.uid}_${selectedUser.uid}`
+        : `${selectedUser.uid}_${user.uid}`
+      : null;
 
-  const typingRef = user && chatId ? ref(rtdb, `messages/${chatId}/typing/${user.uid}`) : null;
-  const otherTypingRef = selectedUser && chatId ? ref(rtdb, `messages/${chatId}/typing/${selectedUser.uid}`) : null;
+  const typingRef =
+    user && chatId ? ref(rtdb, `messages/${chatId}/typing/${user.uid}`) : null;
+  const otherTypingRef =
+    selectedUser && chatId
+      ? ref(rtdb, `messages/${chatId}/typing/${selectedUser.uid}`)
+      : null;
 
-useEffect(() => {
-  if (!chatId) return;
-
-  const messagesRef = ref(rtdb, `messages/${chatId}`);
-
-  // ✅ Clear previous messages before loading new ones
-  setMessages([]); // 👈 this is key!
-
-  // Ensure participants exist for listing
-  if (user && selectedUser) {
-    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
-    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
-  }
-
-  const unsubscribe = onChildAdded(messagesRef, (snapshot) => {
-    if (snapshot.key === "typing" || snapshot.key === "participants" || snapshot.key === "lastMessageAt") return; // ignore meta
-    setMessages((prev) => [...prev, snapshot.val()]);
-  });
-
-  return () => unsubscribe();
-}, [chatId, user?.uid, selectedUser?.uid]);
-
+  // --- logic kept exactly the same ---
+  useEffect(() => {
+    if (!chatId) return;
+    const messagesRef = ref(rtdb, `messages/${chatId}`);
+    setMessages([]);
+    if (user && selectedUser) {
+      set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(
+        () => {}
+      );
+      set(
+        ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`),
+        true
+      ).catch(() => {});
+    }
+    const unsubscribe = onChildAdded(messagesRef, (snapshot) => {
+      if (
+        snapshot.key === "typing" ||
+        snapshot.key === "participants" ||
+        snapshot.key === "lastMessageAt"
+      )
+        return;
+      setMessages((prev) => [...prev, snapshot.val()]);
+    });
+    return () => unsubscribe();
+  }, [chatId, user?.uid, selectedUser?.uid]);
 
   useEffect(() => {
     if (!otherTypingRef) return;
@@ -77,7 +85,6 @@ useEffect(() => {
     return () => unsubscribeTyping();
   }, [otherTypingRef]);
 
-  // Ensure typing flag is cleared when tab is hidden/blurred or component unmounts
   useEffect(() => {
     if (!typingRef) return;
     const clearTyping = () => {
@@ -96,16 +103,13 @@ useEffect(() => {
     };
   }, [typingRef]);
 
-  // Debounced typing state: set once, refresh timer, clear after idle
   useEffect(() => {
     if (!typingRef) return;
-
     const ensureRemove = () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       remove(typingRef);
       typingSetRef.current = false;
     };
-
     if (input.length > 0) {
       if (!typingSetRef.current) {
         set(typingRef, true).catch(() => {});
@@ -116,7 +120,6 @@ useEffect(() => {
     } else {
       ensureRemove();
     }
-
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
@@ -126,12 +129,13 @@ useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Track presence (lastActive) for both users from Firestore
   useEffect(() => {
     if (!user?.uid) return;
     const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
       const data: any = snap.data();
-      setLastActiveSelf(data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0);
+      setLastActiveSelf(
+        data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0
+      );
     });
     return () => unsub();
   }, [user?.uid]);
@@ -140,23 +144,27 @@ useEffect(() => {
     if (!selectedUser?.uid) return;
     const unsub = onSnapshot(doc(db, "users", selectedUser.uid), (snap) => {
       const data: any = snap.data();
-      setLastActiveOther(data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0);
+      setLastActiveOther(
+        data?.lastActive?.toMillis ? data.lastActive.toMillis() : 0
+      );
     });
     return () => unsub();
   }, [selectedUser?.uid]);
 
-  // Tick clock for comparisons
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(i);
   }, []);
 
-  // Cleanup messages if either user has been offline > 10 minutes (preserve metadata)
   useEffect(() => {
     if (!chatId) return;
     if (!lastActiveSelf && !lastActiveOther) return;
-    const selfOffline = lastActiveSelf ? now - lastActiveSelf > OFFLINE_THRESHOLD_MS : false;
-    const otherOffline = lastActiveOther ? now - lastActiveOther > OFFLINE_THRESHOLD_MS : false;
+    const selfOffline = lastActiveSelf
+      ? now - lastActiveSelf > OFFLINE_THRESHOLD_MS
+      : false;
+    const otherOffline = lastActiveOther
+      ? now - lastActiveOther > OFFLINE_THRESHOLD_MS
+      : false;
     if (selfOffline || otherOffline) {
       if (cleanedRef.current) return;
       cleanedRef.current = true;
@@ -170,9 +178,11 @@ useEffect(() => {
           await remove(ref(rtdb, `messages/${chatId}`));
           const updates: any = {};
           if (typingSnap.exists()) updates["typing"] = typingSnap.val();
-          if (participantsSnap.exists()) updates["participants"] = participantsSnap.val();
+          if (participantsSnap.exists()) updates["participants"] =
+            participantsSnap.val();
           if (lastAtSnap.exists()) updates["lastMessageAt"] = lastAtSnap.val();
-          if (Object.keys(updates).length) await update(ref(rtdb, `messages/${chatId}`), updates);
+          if (Object.keys(updates).length)
+            await update(ref(rtdb, `messages/${chatId}`), updates);
           setMessages([]);
         } catch (_) {}
       };
@@ -182,7 +192,6 @@ useEffect(() => {
     }
   }, [now, lastActiveSelf, lastActiveOther, chatId]);
 
-  // Cleanup any legacy typing path outside messages/{chatId}
   useEffect(() => {
     if (!chatId || !user) return;
     remove(ref(rtdb, `typing/${chatId}/${user.uid}`)).catch(() => {});
@@ -197,8 +206,13 @@ useEffect(() => {
       timestamp: Date.now(),
     });
     update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
-    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
-    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(
+      () => {}
+    );
+    set(
+      ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`),
+      true
+    ).catch(() => {});
     if (typingRef) {
       remove(typingRef);
       typingSetRef.current = false;
@@ -206,7 +220,6 @@ useEffect(() => {
     setInput("");
   };
 
-  // ✅ All hooks declared above. Now we can safely conditionally render.
   if (!user || !selectedUser) {
     return (
       <div className="flex flex-1 items-center justify-center text-gray-400">
@@ -215,59 +228,97 @@ useEffect(() => {
     );
   }
 
-   return (
-    <div className="flex flex-col h-full overflow-hidden">
- <ChatHeader user={selectedUser} currentUserId={user.uid} />
+  // --- UI merged from modern version ---
+  return (
+    <div className="flex flex-col h-full overflow-hidden bg-[#121212] relative">
+      <ChatHeader user={selectedUser} currentUserId={user.uid} />
 
-
-  {/* Message area should scroll, nothing else */}
-  <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+      {/* Messages */}
+<div className="flex-1 overflow-y-auto px-4 pt-3 pb-28 space-y-3 scrollbar-thin scrollbar-thumb-gray-700">
+  <AnimatePresence>
     {messages.map((msg, index) => (
-      <div
+      <motion.div
         key={index}
-        className={`p-2 rounded-lg max-w-xs ${
-          msg.sender === user.uid
-            ? "bg-blue-600 ml-auto text-white"
-            : "bg-gray-700 text-white"
-        }`}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.2 }}
+        className={`flex ${msg.sender === user.uid ? "justify-end" : "justify-start"}`}
       >
-        {msg.text}
-      </div>
+        <div
+          className={`px-4 py-2 rounded-2xl shadow-sm text-sm break-words inline-block max-w-[70%] ${
+            msg.sender === user.uid
+              ? "bg-blue-600 text-white rounded-br-md"
+              : "bg-[#1e1e1e] text-gray-200 rounded-bl-md"
+          }`}
+        >
+          {msg.text}
+        </div>
+      </motion.div>
     ))}
-    <div ref={messagesEndRef} />
-  </div>
-
-  {/* Typing indicator (pinned above input) */}
-  {otherTyping && (
-    <div className="px-4 pb-1">
-      <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020] border border-gray-700 rounded-full px-3 py-1">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-        </span>
-        <span>Typing…</span>
-      </div>
-    </div>
-  )}
-
-  {/* Input area stays pinned */}
-  <div className="p-4 flex gap-2 border-t border-gray-800">
-    <input
-      type="text"
-      className="flex-1 bg-[#202020] border border-gray-700 rounded px-3 py-2 focus:outline-none text-white"
-      placeholder="Type a message..."
-      value={input}
-      onChange={(e) => setInput(e.target.value)}
-      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-    />
-    <button
-      onClick={sendMessage}
-      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-    >
-      Send
-    </button>
-  </div>
+  </AnimatePresence>
+  <div ref={messagesEndRef} />
 </div>
 
+
+
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[min(900px,92%)] max-w-3xl pointer-events-auto">
+        <div className="relative">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22 }}
+            className="mx-auto"
+          >
+            <div className="relative">
+              <AnimatePresence>
+                {otherTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    className="absolute -top-8 left-4"
+                  >
+                    <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020]/70 border border-gray-700 rounded-full px-3 py-1 backdrop-blur">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                      </span>
+                      <span>Typing…</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <div className="flex items-center gap-3 px-4 py-2 rounded-full shadow-lg border border-white/10 bg-transparent backdrop-blur-3xl">
+                <button aria-label="Emoji" className="p-1 rounded-full hover:bg-white/5">
+                  <Smile size={18} />
+                </button>
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendMessage();
+                  }}
+                  placeholder="Message"
+                  className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
+                />
+                <button aria-label="Attach" className="p-1 rounded-full hover:bg-white/5">
+                  <Paperclip size={18} />
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={sendMessage}
+                  aria-label="Send"
+                  className="ml-2 hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                >
+                  <Send size={14} />
+                  <span>Send</span>
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
   );
 }
