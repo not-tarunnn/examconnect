@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   confirmPasswordReset,
@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const oobCode = searchParams.get("oobCode");
 
@@ -108,5 +108,13 @@ export default function ResetPasswordPage() {
         {message && <p className="text-gray-300 text-sm">{message}</p>}
       </form>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="text-white text-center">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
