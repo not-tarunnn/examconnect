@@ -120,10 +120,11 @@ export default function LoginPage() {
   />
 
   <div className="mt-2 mb-6">
-    <a href="#" className="text-sm text-blue-600 hover:underline">
+    <a href="/password/forgot" className="text-sm text-blue-600 hover:underline">
       Forgot Password?
     </a>
   </div>
+
 
   {error && (
     <p className="text-red-600 text-sm mb-2">{error}</p>
