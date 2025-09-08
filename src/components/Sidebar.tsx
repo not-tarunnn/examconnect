@@ -30,7 +30,7 @@ export default function Sidebar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
+    // { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
     { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
     { label: "Sleep ", href: "/sleep", icon: <FaPlantWilt /> },
     { label: "Community", href: "/community", icon: <FaUsers /> },
@@ -131,16 +131,17 @@ export default function Sidebar() {
           <FaStar className="text-yellow-500"/>
           {!collapsed && "Premium"}
         </Link> */}
-        <Link
+        
+        
+        {/* <Link
   href="/settings"
   className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
 >
-  {/* Icon always stays */}
+ 
   <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
     <FaCog />
   </div>
 
-  {/* Label fades in/out smoothly */}
   <AnimatePresence mode="wait">
     {!collapsed && (
       <motion.span
@@ -155,7 +156,7 @@ export default function Sidebar() {
       </motion.span>
     )}
   </AnimatePresence>
-</Link>
+</Link> */}
 
         {/* Dropdown */}
         {user && (
