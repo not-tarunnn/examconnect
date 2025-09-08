@@ -137,10 +137,11 @@ export default function Sidebar() {
   href="/settings"
   className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
 >
- 
+  
   <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
     <FaCog />
   </div>
+
 
   <AnimatePresence mode="wait">
     {!collapsed && (
