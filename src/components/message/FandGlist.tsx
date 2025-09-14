@@ -17,6 +17,7 @@ type User = {
   lastActive?: number;
   lastMessageAt?: number;
   lastMessageText?: string;
+  unread?: boolean;
 };
 
 function colorForKey(key: string) {
@@ -116,6 +117,20 @@ export default function FandGlist() {
             }
           }
 
+          // determine unread: any message not sent by current user and not marked read by them
+          let unread = false;
+          for (const key in chat) {
+            if (key === "typing" || key === "participants" || key === "lastMessageAt") continue;
+            const msg = chat[key];
+            if (!msg || typeof msg !== "object") continue;
+            const sender = msg.sender;
+            const readBy = msg.readBy || {};
+            if (sender !== currentUser.uid && !readBy[currentUser.uid]) {
+              unread = true;
+              break;
+            }
+          }
+
           unique[otherUid] = {
             uid: otherUid,
             username: data.username || "",
@@ -124,6 +139,7 @@ export default function FandGlist() {
             lastActive: data.lastActive?.toMillis ? data.lastActive.toMillis() : 0,
             lastMessageAt: chat?.lastMessageAt || latestTs || 0,
             lastMessageText: latestText,
+            unread,
           };
         })
       );
@@ -205,7 +221,7 @@ export default function FandGlist() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.02 }}
-                className={`w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white/5 ${
+                className={`w-full relative flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white/5 ${
                   selectedUser?.uid === user.uid
                     ? "bg-indigo-500/15 ring-1 ring-indigo-400/30"
                     : ""
@@ -246,6 +262,10 @@ export default function FandGlist() {
                       : `@${user.username}`}
                   </p>
                 </div>
+
+                {user.unread && (
+                  <span className="absolute z-10 bottom-5 right-3 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
+                )}
               </motion.button>
             );
           })}

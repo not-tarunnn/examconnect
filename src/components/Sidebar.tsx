@@ -5,7 +5,8 @@ import { useState, useRef, useEffect } from "react";
 import useAuth from "@/hooks/useAuth";
 import useUserData from "@/hooks/useUserData";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase"; // adjust path if needed
+import { auth, rtdb } from "@/lib/firebase"; // adjust path if needed
+import { ref, onValue } from "firebase/database";
 import {
   FaHome,
   FaUsers,
@@ -28,9 +29,40 @@ export default function Sidebar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setHasUnread(false);
+      return;
+    }
+    const messagesRoot = ref(rtdb, `messages`);
+    const unsub = onValue(messagesRoot, (snap) => {
+      const val = snap.val() || {};
+      let found = false;
+      for (const chatId of Object.keys(val)) {
+        if (!chatId.includes(user.uid)) continue;
+        const chat = val[chatId] || {};
+        for (const key of Object.keys(chat)) {
+          if (key === "typing" || key === "participants" || key === "lastMessageAt") continue;
+          const msg = chat[key];
+          if (!msg || typeof msg !== "object") continue;
+          const sender = msg.sender;
+          const readBy = msg.readBy || {};
+          if (sender !== user.uid && !readBy[user.uid]) {
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+      setHasUnread(found);
+    });
+    return () => unsub();
+  }, [user?.uid]);
 
   const navItems = [
-    // { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
+    { label: "Dashboard", href: "/dashboard", icon: <FaHome /> },
     { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
     { label: "Sleep ", href: "/sleep", icon: <FaPlantWilt /> },
     { label: "Community", href: "/community", icon: <FaUsers /> },
@@ -92,13 +124,16 @@ export default function Sidebar() {
 <Link
   key={item.label}
   href={item.href}
-  className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f]"
+  className={`relative flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f]`}
 >
   {/* Icon always visible, never animates */}
 <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
   {item.icon}
 </div>
 
+{item.href === "/community" && hasUnread && (
+  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
+)}
 
   {/* Label fades in/out */}
   <AnimatePresence mode="wait">
@@ -133,16 +168,16 @@ export default function Sidebar() {
         </Link> */}
         
         
-        {/* <Link
+        <Link
   href="/settings"
   className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
 >
-  
+  {/* Icon always stays */}
   <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
     <FaCog />
   </div>
 
-
+  {/* Label fades in/out smoothly */}
   <AnimatePresence mode="wait">
     {!collapsed && (
       <motion.span
@@ -157,7 +192,7 @@ export default function Sidebar() {
       </motion.span>
     )}
   </AnimatePresence>
-</Link> */}
+</Link>
 
         {/* Dropdown */}
         {user && (

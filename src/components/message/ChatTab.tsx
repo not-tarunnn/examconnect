@@ -17,7 +17,8 @@ import ChatHeader from "./ChatHeader";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smile, Paperclip, Send } from "lucide-react";
+import { Smile, Send } from "lucide-react";
+import AttachmentPicker from "@/components/message/AttachmentPicker";
 
 export default function ChatTab() {
   const { user } = useAuth();
@@ -35,7 +36,7 @@ export default function ChatTab() {
   const [lastActiveOther, setLastActiveOther] = useState<number>(0);
   const [now, setNow] = useState<number>(Date.now());
 
-  const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
+  const OFFLINE_THRESHOLD_MS = Number.POSITIVE_INFINITY;
 
   const chatId =
     user?.uid && selectedUser?.uid
@@ -76,6 +77,30 @@ export default function ChatTab() {
     });
     return () => unsubscribe();
   }, [chatId, user?.uid, selectedUser?.uid]);
+
+  // Mark all messages in this chat as read by current user when opening the chat
+  useEffect(() => {
+    if (!chatId || !user?.uid) return;
+    const markRead = async () => {
+      try {
+        const snap = await get(ref(rtdb, `messages/${chatId}`));
+        if (!snap.exists()) return;
+        const updates: any = {};
+        snap.forEach((child) => {
+          const key = child.key;
+          if (!key) return;
+          if (key === "typing" || key === "participants" || key === "lastMessageAt") return;
+          const val = child.val() || {};
+          if (val.readBy && val.readBy[user.uid]) return;
+          updates[`messages/${chatId}/${key}/readBy/${user.uid}`] = true;
+        });
+        if (Object.keys(updates).length) {
+          await update(ref(rtdb), updates);
+        }
+      } catch (err) {}
+    };
+    void markRead();
+  }, [chatId, user?.uid]);
 
   useEffect(() => {
     if (!otherTypingRef) return;
@@ -204,6 +229,7 @@ export default function ChatTab() {
       text: input,
       sender: user.uid,
       timestamp: Date.now(),
+      readBy: { [user.uid]: true },
     });
     update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
     set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(
@@ -245,15 +271,23 @@ export default function ChatTab() {
         transition={{ duration: 0.2 }}
         className={`flex ${msg.sender === user.uid ? "justify-end" : "justify-start"}`}
       >
-        <div
-          className={`px-4 py-2 rounded-2xl shadow-sm text-sm break-words inline-block max-w-[70%] ${
-            msg.sender === user.uid
-              ? "bg-blue-600 text-white rounded-br-md"
-              : "bg-[#1e1e1e] text-gray-200 rounded-bl-md"
-          }`}
-        >
-          {msg.text}
-        </div>
+        {msg && msg.data && msg.mime ? (
+          <img
+            src={`data:${msg.mime};base64,${msg.data}`}
+            alt={msg.filename || "image"}
+            className="rounded-md max-w-[70%] h-auto"
+          />
+        ) : (
+          <div
+            className={`px-4 py-2 rounded-2xl shadow-sm text-sm break-words inline-block max-w-[70%] ${
+              msg.sender === user.uid
+                ? "bg-blue-600 text-white rounded-br-md"
+                : "bg-[#1e1e1e] text-gray-200 rounded-bl-md"
+            }`}
+          >
+            {msg.text}
+          </div>
+        )}
       </motion.div>
     ))}
   </AnimatePresence>
@@ -302,9 +336,24 @@ export default function ChatTab() {
                   placeholder="Message"
                   className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
                 />
-                <button aria-label="Attach" className="p-1 rounded-full hover:bg-white/5">
-                  <Paperclip size={18} />
-                </button>
+                <AttachmentPicker onUploadAction={async (base64: string, mime: string, filename: string) => {
+                  try {
+                    if (!chatId || !user || !selectedUser) return;
+                    const messagesRef = ref(rtdb, `messages/${chatId}`);
+                    await push(messagesRef, {
+                      image: true,
+                      data: base64,
+                      mime,
+                      filename,
+                      sender: user.uid,
+                      timestamp: Date.now(),
+                      readBy: { [user.uid]: true },
+                    });
+                    update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
+                    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
+                    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+                  } catch (_) {}
+                }} />
                 <motion.button
                   whileTap={{ scale: 0.94 }}
                   onClick={sendMessage}

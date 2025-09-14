@@ -5,12 +5,14 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Camera, MoreVertical } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface ChatHeaderProps {
   user: {
     fullName: string;
     profilePic?: string;
     uid: string;
+    username?: string;
   };
   currentUserId: string;
 }
@@ -63,11 +65,21 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
       {/* Left: avatar + name */}
       <div className="flex items-center gap-3">
         <div className="relative">
-          <img
-            src={user.profilePic || "/avatar.png"}
-            alt={user.fullName}
-            className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
-          />
+          {user.username ? (
+            <Link href={`/profile/${encodeURIComponent(user.username)}`} aria-label={user.fullName} className="block">
+              <img
+                src={user.profilePic || "/avatar.png"}
+                alt={user.fullName}
+                className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
+              />
+            </Link>
+          ) : (
+            <img
+              src={user.profilePic || "/avatar.png"}
+              alt={user.fullName}
+              className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
+            />
+          )}
           <span
             className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#181818] ${
               isActive ? "bg-green-500" : "bg-gray-500"
@@ -76,7 +88,13 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
           />
         </div>
         <div>
-          <div className="text-sm font-semibold text-white">{user.fullName}</div>
+          {user.username ? (
+            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="text-sm font-semibold text-white no-underline hover:no-underline">
+              {user.fullName}
+            </Link>
+          ) : (
+            <div className="text-sm font-semibold text-white">{user.fullName}</div>
+          )}
           <div className="text-[11px] text-zinc-400">{formatLastSeen()}</div>
         </div>
       </div>

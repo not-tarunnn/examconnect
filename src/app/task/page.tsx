@@ -139,7 +139,7 @@ const handleDifficultyModalClose = () => {
   >
     Tasks
   </button>
-  {/* <button
+  <button
     onClick={() => setActiveTab("habits")}
     className={`px-3 py-1 text-sm font-medium rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
       activeTab === "habits"
@@ -148,7 +148,7 @@ const handleDifficultyModalClose = () => {
     }`}
   >
     Habits
-  </button> */}
+  </button>
   <button
     onClick={() => setActiveTab("map")}
     className={`px-3 py-1 text-sm font-medium rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
@@ -326,11 +326,11 @@ const handleDifficultyModalClose = () => {
             </>
           )}
 
-          {/* {activeTab === "habits" && (
+          {activeTab === "habits" && (
   <div className="flex-1 flex items-center justify-center text-muted-foreground text-xl font-medium">
     🚧 Habits feature is under development.
   </div>
-)} */}
+)}
 
           {activeTab === "map" && (
   <div className="flex-1 relative overflow-hidden">

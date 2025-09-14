@@ -1,20 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, FaGooglePlusSquare, FaPlusCircle, FaPlusSquare, } from "react-icons/fa";
 import { FaMessage, FaRegMessage } from "react-icons/fa6";
 import CreatePostModal from "@/components/community/CreatePostModal";
-
+import useAuth from "@/hooks/useAuth";
+import { rtdb } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 
 export default function Footer() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+    const { user } = useAuth();
+    const [hasUnread, setHasUnread] = useState(false);
+
+    useEffect(() => {
+      if (!user?.uid) {
+        setHasUnread(false);
+        return;
+      }
+      const messagesRoot = ref(rtdb, `messages`);
+      const unsub = onValue(messagesRoot, (snap) => {
+        const val = snap.val() || {};
+        let found = false;
+        for (const chatId of Object.keys(val)) {
+          if (!chatId.includes(user.uid)) continue;
+          const chat = val[chatId] || {};
+          for (const key of Object.keys(chat)) {
+            if (key === "typing" || key === "participants" || key === "lastMessageAt") continue;
+            const msg = chat[key];
+            if (!msg || typeof msg !== "object") continue;
+            const sender = msg.sender;
+            const readBy = msg.readBy || {};
+            if (sender !== user.uid && !readBy[user.uid]) {
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+        setHasUnread(found);
+      });
+      return () => unsub();
+    }, [user?.uid]);
+
   return (
     <footer className="w-full mt-auto bg-transparent sticky bottom-3  z-10">
       <div className="px-6 py-2 max-w-7xl mr-[16rem] mx-auto">
         {/* Single row with icons and search bar */}
         <div className="flex justify-center items-center gap-8 text-xl text-gray-400">
           {/* Left icons */}
-          <a href="/message" className="hover:text-white transition" title="Friends">
+          <a href="/message" className="relative hover:text-white transition" title="Friends">
             <FaFacebookMessenger />
+            {hasUnread && (
+              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 border border-white/10 shadow-sm" />
+            )}
           </a>
           {/* Your Plus Button */}
       <a
