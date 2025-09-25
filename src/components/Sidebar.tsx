@@ -21,6 +21,8 @@ import {
 import { useSidebarStore } from "@/store/useSidebarStore";
 import {  FaPlantWilt } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
+import AdCashAd from "@/components/AdCashAd";
+
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -155,7 +157,11 @@ export default function Sidebar() {
 
 ))}
         </nav>
+        {/* ✅ AdCash Ad goes here */}
+  <AdCashAd zoneId="0kfkbiw52b" />
+
       </div>
+
 
       {/* Bottom Section */}
       <div className="flex flex-col px-4 pb-4 space-y-3 text-white relative">
@@ -168,7 +174,31 @@ export default function Sidebar() {
         </Link> */}
         
         
-       
+        <Link
+  href="/settings"
+  className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
+>
+  {/* Icon always stays */}
+  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+    <FaCog />
+  </div>
+
+  {/* Label fades in/out smoothly */}
+  <AnimatePresence mode="wait">
+    {!collapsed && (
+      <motion.span
+        key="settings-label"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="whitespace-nowrap"
+      >
+        Settings
+      </motion.span>
+    )}
+  </AnimatePresence>
+</Link>
 
         {/* Dropdown */}
         {user && (

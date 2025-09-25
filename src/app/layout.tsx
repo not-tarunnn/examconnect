@@ -46,6 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <Script
+  id="adcash-lib"
+  strategy="afterInteractive"
+  src="//acscdn.com/script/aclib.js"
+/>
+
       </head>
       <body className="flex flex-col min-h-screen">
         <PresenceTracker />
