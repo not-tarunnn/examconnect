@@ -157,9 +157,6 @@ export default function Sidebar() {
 
 ))}
         </nav>
-        {/* ✅ AdCash Ad goes here */}
-  <AdCashAd zoneId="0kfkbiw52b" />
-
       </div>
 
 
