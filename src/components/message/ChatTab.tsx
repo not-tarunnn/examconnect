@@ -17,7 +17,7 @@ import ChatHeader from "./ChatHeader";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smile, Send } from "lucide-react";
+import { Smile, Send, Check, CheckCheck } from "lucide-react";
 import AttachmentPicker from "@/components/message/AttachmentPicker";
 
 export default function ChatTab() {
@@ -31,6 +31,16 @@ export default function ChatTab() {
   const typingSetRef = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cleanedRef = useRef(false);
+
+  // Attachment staging before sending
+  const [attachments, setAttachments] = useState<Array<{ base64: string; mime: string; filename: string; previewUrl: string }>>([]);
+  const addAttachment = (base64: string, mime: string, filename: string) => {
+    const previewUrl = `data:${mime};base64,${base64}`;
+    setAttachments((prev) => [...prev, { base64, mime, filename, previewUrl }]);
+  };
+  const removeAttachment = (idx: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const [lastActiveSelf, setLastActiveSelf] = useState<number>(0);
   const [lastActiveOther, setLastActiveOther] = useState<number>(0);
@@ -222,27 +232,87 @@ export default function ChatTab() {
     remove(ref(rtdb, `typing/${chatId}/${user.uid}`)).catch(() => {});
   }, [chatId, user?.uid]);
 
-  const sendMessage = () => {
-    if (!input.trim() || !chatId || !user || !selectedUser) return;
+  const formatHHMM = (ts: any): string => {
+    const ms = typeof ts === "number" ? ts : typeof ts === "string" ? parseInt(ts, 10) : (ts?.toMillis ? ts.toMillis() : NaN);
+    if (!Number.isFinite(ms)) return "";
+    const d = new Date(ms);
+    const hh = d.getHours().toString().padStart(2, "0");
+    const mm = d.getMinutes().toString().padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
+  const getReadStatus = (msg: any): "none" | "single" | "double" => {
+    const rb = (msg && msg.readBy) || {};
+    const hasMe = user?.uid ? Boolean(rb[user.uid]) : false;
+    const hasOther = selectedUser?.uid ? Boolean(rb[selectedUser.uid]) : false;
+    const count = (hasMe ? 1 : 0) + (hasOther ? 1 : 0);
+    if (count >= 2) return "double";
+    if (count >= 1) return "single";
+    return "none";
+  };
+
+  const textElsRef = useRef<Map<number, HTMLElement>>(new Map());
+  const [singleLineMap, setSingleLineMap] = useState<Record<number, boolean>>({});
+
+  const measureTextEl = (index: number, el: HTMLElement | null) => {
+    if (!el) return;
+    textElsRef.current.set(index, el);
+    const style = window.getComputedStyle(el);
+    const lineHeight = parseFloat(style.lineHeight || "16");
+    const isSingle = el.scrollHeight <= lineHeight * 1.5;
+    setSingleLineMap((prev) => (prev[index] === isSingle ? prev : { ...prev, [index]: isSingle }));
+  };
+
+  useEffect(() => {
+    const onResize = () => {
+      textElsRef.current.forEach((el, idx) => {
+        const style = window.getComputedStyle(el);
+        const lineHeight = parseFloat(style.lineHeight || "16");
+        const isSingle = el.scrollHeight <= lineHeight * 1.5;
+        setSingleLineMap((prev) => ({ ...prev, [idx]: isSingle }));
+      });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const sendMessage = async () => {
+    if (!chatId || !user || !selectedUser) return;
+    const hasText = Boolean(input.trim());
+    const hasAttachments = attachments.length > 0;
+    if (!hasText && !hasAttachments) return;
+
     const messagesRef = ref(rtdb, `messages/${chatId}`);
-    push(messagesRef, {
-      text: input,
-      sender: user.uid,
-      timestamp: Date.now(),
-      readBy: { [user.uid]: true },
-    });
-    update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
-    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(
-      () => {}
-    );
-    set(
-      ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`),
-      true
-    ).catch(() => {});
+    try {
+      for (const att of attachments) {
+        await push(messagesRef, {
+          image: true,
+          data: att.base64,
+          mime: att.mime,
+          filename: att.filename,
+          sender: user.uid,
+          timestamp: Date.now(),
+          readBy: { [user.uid]: true },
+        });
+      }
+      if (hasText) {
+        await push(messagesRef, {
+          text: input.trim(),
+          sender: user.uid,
+          timestamp: Date.now(),
+          readBy: { [user.uid]: true },
+        });
+      }
+      await update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
+      await set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
+      await set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+    } catch (_) {}
+
     if (typingRef) {
       remove(typingRef);
       typingSetRef.current = false;
     }
+    setAttachments([]);
     setInput("");
   };
 
@@ -256,7 +326,29 @@ export default function ChatTab() {
 
   // --- UI merged from modern version ---
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-[#121212] relative">
+    <div
+      className="flex flex-col h-full overflow-hidden bg-[#121212] relative"
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDrop={async (e) => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer.files || []);
+        for (const file of files) {
+          if (!file.type.startsWith("image/")) continue;
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              const comma = result.indexOf(",");
+              resolve(comma >= 0 ? result.slice(comma + 1) : result);
+            };
+            reader.readAsDataURL(file);
+          });
+          addAttachment(base64, file.type || "image/png", file.name || "image");
+        }
+      }}
+    >
       <ChatHeader user={selectedUser} currentUserId={user.uid} />
 
       {/* Messages */}
@@ -271,23 +363,73 @@ export default function ChatTab() {
         transition={{ duration: 0.2 }}
         className={`flex ${msg.sender === user.uid ? "justify-end" : "justify-start"}`}
       >
-        {msg && msg.data && msg.mime ? (
-          <img
-            src={`data:${msg.mime};base64,${msg.data}`}
-            alt={msg.filename || "image"}
-            className="rounded-md max-w-[70%] h-auto"
-          />
-        ) : (
-          <div
-            className={`px-4 py-2 rounded-2xl shadow-sm text-sm break-words inline-block max-w-[70%] ${
-              msg.sender === user.uid
-                ? "bg-blue-600 text-white rounded-br-md"
-                : "bg-[#1e1e1e] text-gray-200 rounded-bl-md"
-            }`}
-          >
-            {msg.text}
-          </div>
-        )}
+        <div className="max-w-[70%]">
+          {msg && msg.data && msg.mime ? (
+            <div className="relative inline-block">
+              <img
+                src={`data:${msg.mime};base64,${msg.data}`}
+                alt={msg.filename || "image"}
+                className="rounded-md w-full h-auto"
+              />
+              <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                <span>{formatHHMM(msg.timestamp)}</span>
+                {getReadStatus(msg) === "double" ? (
+                  <CheckCheck size={12} className="opacity-80" />
+                ) : getReadStatus(msg) === "single" ? (
+                  <Check size={12} className="opacity-80" />
+                ) : null}
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`px-3 py-2 rounded-2xl shadow-sm text-sm inline-block ${
+                msg.sender === user.uid
+                  ? "bg-blue-600 text-white rounded-br-md"
+                  : "bg-[#1e1e1e] text-gray-200 rounded-bl-md"
+              }`}
+            >
+              {singleLineMap[index] ? (
+                <div className="inline-flex items-baseline gap-2">
+                  <span
+                    ref={(el) => measureTextEl(index, el)}
+                    className="whitespace-pre-wrap break-words"
+                  >
+                    {msg.text}
+                  </span>
+                  <span className={`relative top-[2px] text-[10px] ${msg.sender === user.uid ? "text-white/80" : "text-zinc-400"} inline-flex items-center`}>
+                    <span>{formatHHMM(msg.timestamp)}</span>
+                    {getReadStatus(msg) === "double" ? (
+                      <CheckCheck size={12} className="ml-1 opacity-80" />
+                    ) : getReadStatus(msg) === "single" ? (
+                      <Check size={12} className="ml-1 opacity-80" />
+                    ) : null}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div
+                    ref={(el) => measureTextEl(index, el)}
+                    className="whitespace-pre-wrap break-words"
+                  >
+                    {msg.text}
+                  </div>
+                  <div
+                    className={`mt-1 text-[10px] ${
+                      msg.sender === user.uid ? "text-white/80" : "text-zinc-400"
+                    } text-right inline-flex items-center justify-end gap-1`}
+                  >
+                    <span>{formatHHMM(msg.timestamp)}</span>
+                    {getReadStatus(msg) === "double" ? (
+                      <CheckCheck size={12} className="opacity-80" />
+                    ) : getReadStatus(msg) === "single" ? (
+                      <Check size={12} className="opacity-80" />
+                    ) : null}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </motion.div>
     ))}
   </AnimatePresence>
@@ -323,10 +465,50 @@ export default function ChatTab() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="flex items-center gap-3 px-4 py-2 rounded-full shadow-lg border border-white/10 bg-transparent backdrop-blur-3xl">
+              <div
+                className="flex items-center gap-3 px-4 py-2 rounded-full shadow-lg border border-white/10 bg-transparent backdrop-blur-3xl"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  const files = Array.from(e.dataTransfer.files || []);
+                  for (const file of files) {
+                    if (!file.type.startsWith("image/")) continue;
+                    const base64 = await new Promise<string>((resolve) => {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const result = reader.result as string;
+                        const comma = result.indexOf(",");
+                        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                    addAttachment(base64, file.type || "image/png", file.name || "image");
+                  }
+                }}
+              >
                 <button aria-label="Emoji" className="p-1 rounded-full hover:bg-white/5">
                   <Smile size={18} />
                 </button>
+
+                {attachments.length > 0 && (
+                  <div className="flex items-center gap-2 overflow-x-auto max-w-[50%] py-1 pr-1">
+                    {attachments.map((att, i) => (
+                      <div key={i} className="relative">
+                        <img src={att.previewUrl} alt={att.filename} className="w-12 h-12 rounded-md object-cover border border-white/10" />
+                        <button
+                          onClick={() => removeAttachment(i)}
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-black/70 text-white text-[10px] leading-5 text-center"
+                          aria-label="Remove attachment"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -336,23 +518,8 @@ export default function ChatTab() {
                   placeholder="Message"
                   className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
                 />
-                <AttachmentPicker onUploadAction={async (base64: string, mime: string, filename: string) => {
-                  try {
-                    if (!chatId || !user || !selectedUser) return;
-                    const messagesRef = ref(rtdb, `messages/${chatId}`);
-                    await push(messagesRef, {
-                      image: true,
-                      data: base64,
-                      mime,
-                      filename,
-                      sender: user.uid,
-                      timestamp: Date.now(),
-                      readBy: { [user.uid]: true },
-                    });
-                    update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
-                    set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
-                    set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
-                  } catch (_) {}
+                <AttachmentPicker onUploadAction={(base64: string, mime: string, filename: string) => {
+                  addAttachment(base64, mime, filename);
                 }} />
                 <motion.button
                   whileTap={{ scale: 0.94 }}

@@ -182,7 +182,7 @@ const handleClose = async () => {
 
 
   return (
-    <div className="fixed inset-0 z-49 bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
+    <div className="fixed inset-0 z-[100] bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
       {/* ❌ Close Button */}
     <button
       onClick={handleClose}
@@ -294,18 +294,23 @@ const handleClose = async () => {
         <div className="absolute inset-0 bg-black/70 backdrop-blur flex flex-col items-center justify-center z-50  p-4">
           <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md space-y-4">
             <h2 className="text-lg font-bold text-white mb-2">Select a Task</h2>
-            {userTasks.map((task) => (
-              <button
-                key={task.id}
-                onClick={() => {
-                  setSelectedTask(task);
-                  setShowTaskPicker(false);
-                }}
-                className="w-full text-left px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition"
-              >
-                {task.title}
-              </button>
-            ))}
+            <div
+              className="max-h-[65vh] overflow-y-auto pr-2 -mr-2"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {userTasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => {
+                    setSelectedTask(task);
+                    setShowTaskPicker(false);
+                  }}
+                  className="w-full text-left px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition mb-2 last:mb-0"
+                >
+                  {task.title}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => setShowTaskPicker(false)}
               className="w-full mt-2 text-sm text-gray-400 hover:text-white"

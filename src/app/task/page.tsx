@@ -114,7 +114,7 @@ const handleDifficultyModalClose = () => {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="z-[49] sm:relative fixed">
+      <div className="z-[200] sm:relative fixed">
       <Sidebar />
     </div>
 
@@ -352,7 +352,7 @@ const handleDifficultyModalClose = () => {
     setEditingTask(null);
     setModalOpen(true);
   }}
-  className="fixed bottom-6 right-6 p-4 rounded-full border border-white/30 backdrop-blur-xl bg-white/10 text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:bg-white/20"
+  className="fixed bottom-6 right-6 z-20 p-4 rounded-full border border-white/30 backdrop-blur-xl bg-white/10 text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:bg-white/20"
 >
   <FaPlus className="w-5 h-5" />
 </button>
