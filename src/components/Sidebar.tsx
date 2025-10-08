@@ -21,7 +21,7 @@ import {
 import { useSidebarStore } from "@/store/useSidebarStore";
 import {  FaPlantWilt } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
-import AdCashAd from "@/components/AdCashAd";
+
 
 
 export default function Sidebar() {
