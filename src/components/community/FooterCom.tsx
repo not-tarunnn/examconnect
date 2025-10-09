@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, FaGooglePlusSquare, FaPlusCircle, FaPlusSquare, } from "react-icons/fa";
-import { FaMessage, FaRegMessage } from "react-icons/fa6";
+import { FaFacebookMessenger, FaUsers, FaChartLine, FaTrophy, FaSearch, FaGooglePlusSquare, FaPlusCircle, FaPlusSquare, FaHandshake, FaHandshakeAltSlash, } from "react-icons/fa";
+import { FaHandshakeAngle, FaMessage, FaRegMessage } from "react-icons/fa6";
 import CreatePostModal from "@/components/community/CreatePostModal";
 import useAuth from "@/hooks/useAuth";
 import { rtdb } from "@/lib/firebase";
@@ -83,8 +83,8 @@ export default function Footer() {
           </div>
 
           {/* Right icons */}
-          <a href="#" className=" hover:text-white transition" title="Trending">
-            <FaChartLine />
+          <a href="#" className=" hover:text-white transition" title="Peers">
+            <FaHandshakeAngle />
           </a>
           <a href="#" className="hover:text-white transition" title="Leaderboards">
             <FaTrophy />

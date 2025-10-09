@@ -200,7 +200,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   useEffect(() => {
     if (timeLeft === 0 && isRunning) {
       handlePomodoroComplete();
-      setIsRunning(false);
+      
     }
   }, [timeLeft, isRunning]);
 
