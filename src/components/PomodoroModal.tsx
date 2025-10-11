@@ -328,7 +328,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   }, [hasLogged, isRunning, timeLeft, sessionDuration, selectedTaskId, roomId]);
 
   return (
-    <div role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) { void exitModal(); } }} className="fixed inset-0 z-[100] bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[100] bg-[#0e0e0e] text-white flex flex-col items-center justify-center p-6">
       <button onClick={() => { void exitModal(); }} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
         <X className="w-7 h-7" />
       </button>
