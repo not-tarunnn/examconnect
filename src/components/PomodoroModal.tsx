@@ -11,6 +11,40 @@ import type { Task } from "@/types/task";
 import { useSidebarStore } from "@/store/useSidebarStore";
 import { ref, onValue, update as rUpdate, remove as rRemove, serverTimestamp } from "firebase/database";
 import InviteFriendsSection from "@/components/pomodoro/InviteFriendsSection";
+import MiniMessengerPanel from "@/components/message/MiniMessengerPanel";
+
+function playBeep() {
+  const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
+  const ctx = new AudioCtx();
+
+  // Helper to play a beep at a given time and frequency
+  const beep = (startTime: number, freq: number, duration: number) => {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Smooth fade in/out
+    gainNode.gain.setValueAtTime(0, ctx.currentTime + startTime);
+    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + startTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + startTime + duration - 0.05);
+
+    oscillator.start(ctx.currentTime + startTime);
+    oscillator.stop(ctx.currentTime + startTime + duration);
+  };
+
+  // 🎶 Play three beeps: short–short–long
+  beep(0, 1000, 0.3);   // Beep 1
+  beep(0.6, 1200, 0.3); // Beep 2
+  beep(1.2, 800, 1.2);  // Beep 3 (longer)
+
+  // Total ~2.5 seconds
+}
+
+
 
 interface PomodoroModalProps {
   onClose: () => void;
@@ -200,6 +234,7 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
   useEffect(() => {
     if (timeLeft === 0 && isRunning) {
       handlePomodoroComplete();
+      playBeep();
       
     }
   }, [timeLeft, isRunning]);
@@ -495,6 +530,12 @@ const PomodoroModal: React.FC<PomodoroModalProps> = ({ onClose }) => {
         </div>
       </div>
 
+      {/* Mini Messenger Panel - docked to right side */}
+      <div className="absolute bottom-6 right-6 w-[320px] h-[400px]  overflow-hidden">
+        <MiniMessengerPanel />
+      </div>
+
+            
       {showTaskPicker && (
         <div className="absolute inset-0 bg-black/70 backdrop-blur flex flex-col items-center justify-center z-50  p-4">
           <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md space-y-4">

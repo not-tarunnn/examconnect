@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { useState } from "react";
 import Link from "next/link";
+import ShareModal from "@/components/community/ShareModal";
 
 export type PostProps = {
   id: string;
@@ -35,6 +36,7 @@ export type PostProps = {
 export default function PostCard({ post }: { post: PostProps }) {
   const router = useRouter();
   const auth = getAuth();
+  const [showShare, setShowShare] = useState(false);
 
   const [likes, setLikes] = useState(post.reactions.likes);
   const [dislikes, setDislikes] = useState(post.reactions.dislikes);
@@ -206,10 +208,14 @@ export default function PostCard({ post }: { post: PostProps }) {
               <MessageCircle size={16} />
               <span>{post.commentsCount} Comments</span>
             </button>
-            <button className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors">
-              <Share2 size={16} />
-              <span>Share</span>
-            </button>
+            <button
+  className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors"
+  onClick={() => setShowShare(true)}
+>
+  <Share2 size={16} />
+  <span>Share</span>
+</button>
+            
             <button className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors">
               <Bookmark size={16} />
               <span>Save</span>
@@ -223,6 +229,12 @@ export default function PostCard({ post }: { post: PostProps }) {
           </div>
         </div>
       </div>
+      <ShareModal
+  open={showShare}
+  onClose={() => setShowShare(false)}
+  postUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/post/${post.id}`}
+/>
+
     </div>
   );
 }

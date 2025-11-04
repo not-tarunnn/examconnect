@@ -8,7 +8,6 @@ import { onValue, ref } from "firebase/database";
 import { doc, getDoc } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { Plus, Search, Users } from "lucide-react";
-import CreateGroupModal from "@/components/message/CreateGroupModal";
 
 type User = {
   uid: string;
@@ -19,16 +18,6 @@ type User = {
   lastMessageAt?: number;
   lastMessageText?: string;
   unread?: boolean;
-};
-
-type GroupItem = {
-  groupId: string;
-  name: string;
-  description?: string;
-  iconBase64?: string | null;
-  iconMime?: string | null;
-  lastMessageAt?: number;
-  lastMessageText?: string;
 };
 
 function colorForKey(key: string) {
@@ -85,13 +74,11 @@ function formatLastActive(ts?: number, now: number = Date.now()): string {
   return years === 1 ? "online a year ago" : `online ${years} years ago`;
 }
 
-export default function FandGlist() {
+export default function FandGlistMini() {
   const [users, setUsers] = useState<User[]>([]);
   const [query, setQuery] = useState("");
   const [now, setNow] = useState<number>(Date.now());
-  const [createOpen, setCreateOpen] = useState(false);
-  const [groups, setGroups] = useState<GroupItem[]>([]);
-  const { setSelectedUser, selectedUser, setSelectedGroup } = useChatStore();
+  const { setSelectedUser, selectedUser } = useChatStore();
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
@@ -130,6 +117,7 @@ export default function FandGlist() {
             }
           }
 
+          // determine unread: any message not sent by current user and not marked read by them
           let unread = false;
           for (const key in chat) {
             if (key === "typing" || key === "participants" || key === "lastMessageAt") continue;
@@ -163,58 +151,7 @@ export default function FandGlist() {
       load((snap.val() as any) || {});
     });
 
-    // Groups subscription
-    const chatsRoot = ref(rtdb, `chats`);
-    const unsubGroups = onValue(chatsRoot, async (snap) => {
-      const all = snap.val() || {};
-      const mine: GroupItem[] = [];
-      const gids: string[] = [];
-      Object.keys(all).forEach((gid) => {
-        const g = all[gid];
-        if (!g || g.type !== "group") return;
-        const members = g.members || {};
-        if (!currentUser?.uid || !members[currentUser.uid]) return;
-        mine.push({
-          groupId: gid,
-          name: g.name || gid,
-          description: g.description || "",
-          iconBase64: g.iconBase64 || null,
-          iconMime: g.iconMime || null,
-          lastMessageAt: g.lastMessageTimestamp || 0,
-          lastMessageText: g.lastMessage || "",
-        });
-        gids.push(gid);
-      });
-      // Compute latest message text/timestamp from messages for accuracy
-      try {
-        await Promise.all(
-          mine.map(async (item) => {
-            const gSnap = await (await import("firebase/database")).get(ref(rtdb, `groupMessages/${item.groupId}`));
-            if (!gSnap.exists()) return;
-            let latestTs = 0;
-            let latestText = item.lastMessageText || "";
-            gSnap.forEach((child) => {
-              const key = child.key;
-              if (!key || key === "typing" || key === "participants" || key === "lastMessageAt") return;
-              const msg = child.val();
-              const ts = Number(msg?.timestamp) || 0;
-              if (ts >= latestTs) {
-                latestTs = ts;
-                latestText = typeof msg?.text === "string" ? msg.text : latestText;
-              }
-            });
-            if (latestTs) item.lastMessageAt = latestTs;
-            if (latestText) item.lastMessageText = latestText;
-          })
-        );
-      } catch (_) {}
-
-      setGroups(
-        [...mine].sort((a, b) => (b.lastMessageAt || 0) - (a.lastMessageAt || 0))
-      );
-    });
-
-    return () => { unsub(); unsubGroups(); };
+    return () => unsub();
   }, [currentUser?.uid]);
 
   const filtered = users.filter(
@@ -224,29 +161,10 @@ export default function FandGlist() {
   );
 
   return (
-    <aside className="p-4 overflow-y-auto border-r border-white/5 min-h-screen">
-      {/* Header */}
-      <motion.div
-        className="mb-4 rounded-2xl px-3 py-1"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Messages</h2>
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/10 text-xs"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus size={14} /> New
-          </motion.button>
-        </div>
-      </motion.div>
-
+    <aside className="p-4 overflow-y-auto border-r border-white/5 min-h-scree ">
       {/* Search */}
       <motion.div
-        className="flex items-center gap-3 px-1 mb-4 rounded-2xl p-2"
+        className="flex items-center gap-3 px-1 mb-4 rounded-2xl p-2 "
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.05 }}
@@ -264,52 +182,6 @@ export default function FandGlist() {
           <Users size={18} />
         </button>
       </motion.div>
-
-      {/* Groups section */}
-      <div className="mb-6">
-        <h3 className="text-[11px] tracking-wide font-medium text-zinc-400 uppercase mb-2 px-1">
-          Groups
-        </h3>
-        <div className="space-y-2">
-          {groups
-            .filter((g) => g.name.toLowerCase().includes(query.toLowerCase()))
-            .map((g, idx) => {
-              const imgSrc = g.iconBase64 ? `data:${g.iconMime || "image/png"};base64,${g.iconBase64}` : null;
-              return (
-                <motion.button
-                  key={g.groupId}
-                  onClick={() => setSelectedGroup({ groupId: g.groupId, name: g.name, iconBase64: g.iconBase64 || null, iconMime: g.iconMime || null })}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: idx * 0.02 }}
-                  className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white/5"
-                >
-                  <div className="relative shrink-0">
-                    {imgSrc ? (
-                      <img src={imgSrc} alt={g.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold">
-                        {initialOf(g.name)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium text-white text-sm">{g.name}</p>
-                      <span className="text-[11px] text-zinc-400">
-                        {g.lastMessageAt ? formatLastActive(g.lastMessageAt, now) : ""}
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-zinc-400 truncate inline-block max-w-[85%]">
-                      {g.lastMessageText?.trim() ? snippetChars(g.lastMessageText) : g.description?.trim() || ""}
-                    </p>
-                  </div>
-                </motion.button>
-              );
-            })}
-        </div>
-      </div>
 
       {/* People list (Friends section) */}
       <div>
@@ -381,12 +253,6 @@ export default function FandGlist() {
           })}
         </div>
       </div>
-      <CreateGroupModal
-        open={createOpen}
-        onOpenChangeAction={setCreateOpen}
-        friends={users as any}
-        currentUid={currentUser?.uid || null}
-      />
     </aside>
   );
 }

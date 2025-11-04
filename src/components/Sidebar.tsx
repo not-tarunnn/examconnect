@@ -19,7 +19,7 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import {  FaPlantWilt } from "react-icons/fa6";
+import {  FaNotesMedical, FaNoteSticky, FaPencil, FaPlantWilt } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -172,7 +172,7 @@ export default function Sidebar() {
         
         
         <Link
-  href="/settings"
+  href="/accountsetting"
   className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md"
 >
   {/* Icon always stays */}
@@ -259,11 +259,11 @@ export default function Sidebar() {
       Profile
     </Link>
     <Link
-      href="/accountsetting"
+      href="/release-notes"
       className="flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded-md"
     >
-      <FaCog />
-      Account Settings
+      <FaPencil />
+      Release Notes
     </Link>
     <button
       onClick={handleLogout}

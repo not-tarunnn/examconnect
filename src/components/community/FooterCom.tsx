@@ -83,7 +83,7 @@ export default function Footer() {
           </div>
 
           {/* Right icons */}
-          <a href="#" className=" hover:text-white transition" title="Peers">
+          <a href="peers" className=" hover:text-white transition" title="Peers">
             <FaHandshakeAngle />
           </a>
           <a href="#" className="hover:text-white transition" title="Leaderboards">
