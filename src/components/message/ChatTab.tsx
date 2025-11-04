@@ -437,7 +437,7 @@ export default function ChatTab() {
   }
 
   const headerEl = isGroup && groupId && selectedGroup ? (
-    <GroupHeader groupId={groupId} name={selectedGroup.name} iconBase64={selectedGroup.iconBase64 || null} iconMime={selectedGroup.iconMime || null} onInfo={() => setGroupInfoOpen(true)} />
+    <GroupHeader groupId={groupId} name={selectedGroup.name} iconBase64={selectedGroup.iconBase64 || null} iconMime={selectedGroup.iconMime || null} onInfoAction={() => setGroupInfoOpen(true)} />
   ) : selectedUser ? (
     <ChatHeader user={selectedUser} currentUserId={user.uid} />
   ) : null;
