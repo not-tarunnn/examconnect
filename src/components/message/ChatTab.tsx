@@ -15,6 +15,7 @@ import {
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import ChatHeader from "./ChatHeader";
 import GroupHeader from "./GroupHeader";
+import AddGroupMembersModal from "@/components/message/AddGroupMembersModal";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,7 @@ export default function ChatTab() {
   const [otherTyping, setOtherTyping] = useState(false);
   const [typingNames, setTypingNames] = useState<string[]>([]); // group typing names
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  const [addMembersOpen, setAddMembersOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isGroup = Boolean(selectedGroup?.groupId);
   const groupId = selectedGroup?.groupId || null;
@@ -437,7 +439,14 @@ export default function ChatTab() {
   }
 
   const headerEl = isGroup && groupId && selectedGroup ? (
-    <GroupHeader groupId={groupId} name={selectedGroup.name} iconBase64={selectedGroup.iconBase64 || null} iconMime={selectedGroup.iconMime || null} onInfoAction={() => setGroupInfoOpen(true)} />
+    <GroupHeader
+      groupId={groupId}
+      name={selectedGroup.name}
+      iconBase64={selectedGroup.iconBase64 || null}
+      iconMime={selectedGroup.iconMime || null}
+      onInfoAction={() => setGroupInfoOpen(true)}
+      onAddAction={() => setAddMembersOpen(true)}
+    />
   ) : selectedUser ? (
     <ChatHeader user={selectedUser} currentUserId={user.uid} />
   ) : null;
@@ -570,6 +579,14 @@ export default function ChatTab() {
           </div>
         </motion.aside>
       )}
+
+      <AddGroupMembersModal
+        open={!!(isGroup && addMembersOpen && groupId)}
+        onOpenChangeAction={setAddMembersOpen}
+        groupId={groupId || ""}
+        currentUid={user?.uid || null}
+        existingMemberUids={memberUids}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28 space-y-3 scrollbar-thin scrollbar-thumb-gray-700">

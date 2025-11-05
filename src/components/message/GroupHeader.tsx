@@ -5,7 +5,7 @@ import { ref, onValue } from "firebase/database";
 import { doc, onSnapshot } from "firebase/firestore";
 import { rtdb, db } from "@/lib/firebase";
 import { motion } from "framer-motion";
-import { Info } from 'lucide-react';
+import { Info, Plus } from 'lucide-react';
 
 type Props = {
   groupId: string;
@@ -13,9 +13,10 @@ type Props = {
   iconBase64?: string | null;
   iconMime?: string | null;
   onInfoAction?: () => void;
+  onAddAction?: () => void;
 };
 
-export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInfoAction }: Props) {
+export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInfoAction, onAddAction }: Props) {
   const [memberUids, setMemberUids] = useState<string[]>([]);
   const [onlineCount, setOnlineCount] = useState<number>(0);
 
@@ -117,6 +118,9 @@ export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInf
       </div>
 
       <div className="flex items-center gap-2">
+        <button onClick={() => onAddAction && onAddAction()} className="p-2 rounded-xl hover:bg-white/10 border border-white/10" aria-label="Add members">
+          <Plus size={18} color="currentColor" strokeWidth={2} />
+        </button>
         <button onClick={() => onInfoAction && onInfoAction()} className="p-2 rounded-xl hover:bg-white/10 border border-white/10" aria-label="Group info">
           <Info size={18} color="currentColor" strokeWidth={2} />
         </button>
