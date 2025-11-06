@@ -34,7 +34,7 @@ export default function SleepPage() {
 
       {/* Main */}
       <div
-        className={`flex flex-col  bg-[#202020] flex-1 transition-all duration-300 pl-16 sm:pl-0 `}
+        className={`flex flex-col  bg-[#202020] flex-1 transition-all duration-300 pl-0 sm:pl-0 `}
       >
         <div className="sticky top-0 z-10">
           <HeaderApp />

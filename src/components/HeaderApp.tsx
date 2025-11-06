@@ -166,21 +166,32 @@ return (
   <div id="focus-root">
     <header className="w-full px-6 py-4 bg-transparent text-white flex items-center justify-between">
       {/* Left: Logo */}
-      <h1 className="text-xl font-bold tracking-tight">EXAM CONNECT</h1>
+      <h1
+  className="
+    text-xl               /* smaller text for mobile */
+    md:text-xl            /* normal size for desktop */
+    font-bold tracking-tight
+    ml-12 md:ml-0  
+    py-2 md:py-0        /* move right on mobile, normal on desktop */
+  "
+>
+  EXAM CONNECT
+</h1>
+
 
       {/* Right: Focus Mode Toggle */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 ">
 
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-1 md:gap-2">
           <FaFire className="text-xl text-orange-400" />
           <span>{streak}</span>
         </div>
         {/* inbox icon */}
-        <button className="p-2 rounded-full hover:bg-white/20 transition">
+        <button className="hidden sm:block p-2 rounded-full hover:bg-white/20 transition">
           <FaInbox size={20} />
         </button>
 
-        <span className="text-sm">Focus Mode</span>
+        <span className=" hidden sm:block text-sm">Focus Mode</span>
 
         <div className="flex items-center gap-2">
           <label className="relative inline-flex items-center cursor-pointer">
@@ -198,12 +209,13 @@ return (
             <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-5 transition-transform duration-300"></div>
           </label>
           {!extensionAvailable && (
-            <span
-              className="text-xs text-yellow-400"
-              title="Extension not detected"
-            >
-              Install Extension ⚠️
-            </span>
+           <span
+  className="hidden sm:inline text-xs text-yellow-400"
+  title="Extension not detected"
+>
+  Install Extension ⚠️
+</span>
+
           )}
         </div>
 

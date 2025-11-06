@@ -10,7 +10,7 @@ import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 // ⬇️ Add imports for Sidebar and HeaderApp
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaRegCalendarAlt } from "react-icons/fa";
 import { TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
@@ -120,7 +120,7 @@ const handleDifficultyModalClose = () => {
 
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 pl-16 sm:pl-0">
+      <div className="flex flex-col flex-1 pl-0 sm:pl-0">
         {/* Header */}
         <HeaderApp />
 
@@ -168,7 +168,7 @@ const handleDifficultyModalClose = () => {
             <>
               <div className="flex justify-between items-start mb-6 flex-wrap gap-4">
   {/* Left: Pending / Completed */}
-  <div className="flex gap-4 items-start">
+  <div className="flex gap-4 items-start ml-24 sm:ml-0">
     <button
       onClick={() => setTaskFilter("pending")}
       className={taskFilter === "pending" ? "underline font-medium" : ""}
@@ -184,7 +184,7 @@ const handleDifficultyModalClose = () => {
   </div>
 
   {/* Right: Filters */}
-  <div className="flex gap-3 flex-wrap text-black">
+  <div className="flex gap-3 flex-wrap text-black ml-3 sm:ml-0">
     <select
       value={priorityFilter || ""}
       onChange={(e) => setPriorityFilter(e.target.value || null)}
@@ -209,12 +209,48 @@ const handleDifficultyModalClose = () => {
       ))}
     </select>
 
-    <input
-  type="date"
-  value={dueDateFilter || getTodayLocal()}
-  onChange={(e) => setDueDateFilter(e.target.value || null)}
-  className="border px-3 py-1 rounded"
-/>
+     <div className="flex items-center gap-2">
+      {/* Desktop version — normal input */}
+      <input
+        type="date"
+        value={dueDateFilter || getTodayLocal()}
+        onChange={(e) => setDueDateFilter(e.target.value || null)}
+        className="border px-3 py-1 rounded hidden md:block"
+      />
+
+      {/* Mobile version — calendar button */}
+      <div className="block md:hidden relative">
+        <input
+          type="date"
+          id="hidden-date-input"
+          value={dueDateFilter || getTodayLocal()}
+          onChange={(e) => setDueDateFilter(e.target.value || null)}
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => {
+            const input = document.getElementById("hidden-date-input") as HTMLInputElement;
+            input?.showPicker?.();
+          }}
+          className="
+            flex items-center justify-center
+            w-10 h-10
+            rounded-lg
+            bg-[#1e1e1e]
+            border border-gray-700
+            text-gray-300 hover:text-white hover:border-gray-500
+            active:scale-95
+            transition-all duration-200
+            shadow-sm
+          "
+          aria-label="Open calendar"
+        >
+          <FaRegCalendarAlt className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

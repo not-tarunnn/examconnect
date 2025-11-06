@@ -16,14 +16,39 @@ type Note = {
 };
 
 const SAMPLE_NOTES: Note[] = [
+   {
+  id: "2025-11-06",
+  date: "November 6, 2025",
+  title: "📱 Mobile Optimization Update",
+  highlights: ["Mobile-friendly UI", "Smooth navigation", "Improved accessibility"],
+  changes: [
+    "The entire app has been **optimized for mobile devices**, ensuring a smooth and intuitive experience on all screen sizes.",
+    "Navigation, buttons, and layouts are now **responsive and touch-friendly**.",
+    "You can now easily **use and manage all core features directly from your phone**.",
+    "Improved performance and reduced load times for mobile users."
+  ],
+},
   {
-    id: "2025-10-15",
-    date: "October 15, 2025",
-    title: "Forum Comments Feature",
-    highlights: ["Comment system", "Easier discussions"],
+    id: "2025-11-04",
+    date: "November 4, 2025",
+    title: "🚀 STUDY GROUPS LAUNCHED!",
+    highlights: ["Study together", "Live collaboration", "Group challenges"],
     changes: [
-      "Introduced a brand-new **comment feature** for forums — making discussions smoother, more interactive, and easier to follow.",
-      "Improved thread layout for better readability and engagement."
+      "We’re thrilled to introduce **Study Groups** — a whole new way to learn and stay accountable together!",
+      "Create or join study groups, share progress, and participate in **real-time group challenges**.",
+      "Includes in-app voice rooms and live collaboration boards for teamwork.",
+      "More group management tools and performance insights coming soon!"
+    ],
+  },
+  {
+    id: "2025-10-29",
+    date: "October 29, 2025",
+    title: "Platform & Security",
+    highlights: ["UI refresh", "Firebase upgrade"],
+    changes: [
+      "Major dashboard UI refresh to match the new ExamConnect style.",
+      "Upgraded authentication flow for faster sign-in (Firebase v10).",
+      "Security hardening and updated data retention prompts."
     ],
   },
   {
@@ -40,30 +65,17 @@ const SAMPLE_NOTES: Note[] = [
     ],
   },
   {
-    id: "2025-10-29",
-    date: "October 29, 2025",
-    title: "Platform & Security",
-    highlights: ["UI refresh", "Firebase upgrade"],
+    id: "2025-10-15",
+    date: "October 15, 2025",
+    title: "Forum Comments Feature",
+    highlights: ["Comment system", "Easier discussions"],
     changes: [
-      "Major dashboard UI refresh to match the new ExamConnect style.",
-      "Upgraded authentication flow for faster sign-in (Firebase v10).",
-      "Security hardening and updated data retention prompts."
-    ],
-  },
-
-  {
-    id: "2025-11-04",
-    date: "November 4, 2025",
-    title: "🚀 STUDY GROUPS LAUNCHED!",
-    highlights: ["Study together", "Live collaboration", "Group challenges"],
-    changes: [
-      "We’re thrilled to introduce **Study Groups** — a whole new way to learn and stay accountable together!",
-      "Create or join study groups, share progress, and participate in **real-time group challenges**.",
-      "Includes in-app voice rooms and live collaboration boards for teamwork.",
-      "More group management tools and performance insights coming soon!"
+      "Introduced a brand-new **comment feature** for forums — making discussions smoother, more interactive, and easier to follow.",
+      "Improved thread layout for better readability and engagement."
     ],
   },
 ];
+
 
 
 export default function ReleaseNotes() {

@@ -103,7 +103,7 @@ const MusicPlayer = () => {
   const clearError = () => setError(null);
 if (!isConnected) {
   return (
-    <div className={`fixed bottom-0 ${collapsed ? 'sm:left-20' : 'sm:left-64'} pl-16 sm:pl-0  right-0 transition-all duration-300`}>
+    <div className={`fixed bottom-0 ${collapsed ? 'sm:left-20' : 'sm:left-64'} pl-0 sm:pl-0  right-0 transition-all duration-300`}>
       <div className="m-4">
         <div className="backdrop-blur-xl bg-black/20 border border-white/10 rounded-2xl p-6 shadow-2xl">
           <div className="flex items-center justify-between space-x-6 flex-wrap">
