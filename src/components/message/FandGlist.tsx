@@ -233,7 +233,7 @@ export default function FandGlist() {
         transition={{ duration: 0.25 }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Messages</h2>
+          <h2 className="text-lg font-semibold ml-10 sm:ml-0 mt-1 sm:mt-0">Messages</h2>
           <motion.button
             whileTap={{ scale: 0.96 }}
             className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/10 text-xs"

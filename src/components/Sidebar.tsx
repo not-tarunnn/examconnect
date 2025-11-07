@@ -9,7 +9,7 @@ import { auth, rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { FaUsers, FaCog, FaBars, FaUser, FaSignOutAlt, FaAtom, FaClipboardList } from "react-icons/fa";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { FaPencil, FaPlantWilt, FaXmark } from "react-icons/fa6";
+import { FaFacebookMessenger, FaMessage, FaPencil, FaPlantWilt, FaXmark } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Sidebar() {
@@ -56,6 +56,7 @@ export default function Sidebar() {
     { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
     { label: "Sleep ", href: "/sleep", icon: <FaPlantWilt /> },
     { label: "Community", href: "/community", icon: <FaUsers /> },
+    { label: "Messages", href: "/message", icon: <FaFacebookMessenger />, mobileOnly: true },
   ];
 
   const handleLogout = async () => {
@@ -231,23 +232,41 @@ export default function Sidebar() {
           </div>
 
           {/* Nav Links */}
-          <nav className="flex flex-col space-y-2 mt-4 text-md">
-            {navItems.map((item) => (
-              <Link key={item.label} href={item.href} className={`relative flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f]`}>
-                <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">{item.icon}</div>
-                {item.href === "/community" && hasUnread && (
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
-                )}
-                <AnimatePresence mode="wait">
-                  {!collapsed && (
-                    <motion.span key={item.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="whitespace-nowrap">
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Link>
-            ))}
-          </nav>
+<nav className="flex flex-col space-y-2 mt-4 text-md">
+  {navItems
+    .filter((item) => !item.mobileOnly) // hide "Messages" on desktop
+    .map((item) => (
+      <Link
+        key={item.label}
+        href={item.href}
+        className="relative flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f]"
+      >
+        <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+          {item.icon}
+        </div>
+
+        {item.href === "/community" && hasUnread && (
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
+        )}
+
+        <AnimatePresence mode="wait">
+          {!collapsed && (
+            <motion.span
+              key={item.label}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="whitespace-nowrap"
+            >
+              {item.label}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </Link>
+    ))}
+</nav>
+
         </div>
 
         {/* Bottom Section */}

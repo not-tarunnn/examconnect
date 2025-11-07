@@ -70,6 +70,7 @@ export default function ChatTab() {
   const [memberStates, setMemberStates] = useState<Record<string, { muted: boolean; role?: string }>>({});
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [memberUids, setMemberUids] = useState<string[]>([]);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   // Fetch my display name
   useEffect(() => {
@@ -81,6 +82,22 @@ export default function ChatTab() {
     });
     return () => unsub();
   }, [user?.uid]);
+
+
+    useEffect(() => {
+    const handleResize = () => {
+      // Detect keyboard open by comparing viewport height change
+      const vh = window.innerHeight;
+      const visual = window.visualViewport;
+      if (visual) {
+        const offset = window.innerHeight - visual.height;
+        setKeyboardOffset(offset > 0 ? offset : 0);
+      }
+    };
+
+    window.visualViewport?.addEventListener("resize", handleResize);
+    return () => window.visualViewport?.removeEventListener("resize", handleResize);
+  }, []);
 
   // For 1:1: track other presence
   useEffect(() => {
@@ -732,18 +749,42 @@ export default function ChatTab() {
                   </div>
                 )}
 
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") sendMessage();
-                  }}
-                  placeholder="Message"
-                  className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
-                />
-                <AttachmentPicker onUploadAction={(base64: string, mime: string, filename: string) => {
-                  addAttachment(base64, mime, filename);
-                }} />
+                <div
+  className="sticky bottom-0 w-full z-50 bg-[#101010]/90 backdrop-blur-md border-t border-white/10"
+  style={{
+    marginBottom: keyboardOffset ? `${keyboardOffset}px` : "env(safe-area-inset-bottom)",
+    transition: "margin-bottom 0.25s ease",
+  }}
+>
+  <div className="flex items-center p-2">
+    <input
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") sendMessage();
+      }}
+      placeholder="Message"
+      className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
+    />
+
+    <AttachmentPicker
+      onUploadAction={(base64: string, mime: string, filename: string) => {
+        addAttachment(base64, mime, filename);
+      }}
+    />
+
+    <motion.button
+      whileTap={{ scale: 0.94 }}
+      onClick={sendMessage}
+      aria-label="Send"
+      className="ml-2 inline-flex items-center gap-2 rounded-full px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+    >
+      <Send size={14} />
+      <span>Send</span>
+    </motion.button>
+  </div>
+</div>
+
                 <motion.button
                   whileTap={{ scale: 0.94 }}
                   onClick={sendMessage}
