@@ -8,6 +8,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useChatStore } from "@/store/useChatStore";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import ChatTabMini from "@/components/message/ChatTabMini";
 
 export default function MessagesPageClient() {
   const { collapsed } = useSidebarStore();
@@ -113,7 +114,7 @@ export default function MessagesPageClient() {
                     {selectedUser.fullName || "Chat"}
                   </span>
                 </div>
-                <ChatTab />
+                 <ChatTabMini compact={false} />
               </div>
             )}
           </>

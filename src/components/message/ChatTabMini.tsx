@@ -357,15 +357,19 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     );
   }
 
-  // compact styles
-  const containerWidth = compact ? "w-[350px]" : "w-full";
-  const containerHeight = compact ? "h-[500px]" : "h-full";
-  const messageMaxWidth = compact ? "max-w-[78%]" : "max-w-[70%]";
-  const bubbleTextClass = compact ? "text-sm" : "text-sm";
-  const timeTextClass = compact ? "text-[10px]" : "text-[10px]";
-  const inputPadding = compact ? "py-2 px-3" : "py-2 px-4";
-  const inputFontSize = compact ? "text-sm" : "text-sm";
-  const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
+
+// ✅ Unified responsive styles
+const containerWidth = compact ? "max-w-[380px] w-full" : "w-full";
+const containerHeight = compact ? "max-h-[520px] h-full" : "h-full";
+
+const messageMaxWidth = compact ? "max-w-[80%]" : "max-w-[75%]";
+const bubbleTextClass = compact ? "text-[13px]" : "text-[14px]";
+const timeTextClass = compact ? "text-[10px]" : "text-[11px]";
+
+const inputPadding = compact ? "py-2.5 px-3" : "py-3 px-4";
+const inputFontSize = compact ? "text-[13px]" : "text-[14px]";
+const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
+
 
   // --- UI merged from modern version ---
   return (

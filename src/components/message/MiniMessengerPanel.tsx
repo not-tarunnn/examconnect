@@ -125,7 +125,7 @@ export default function MiniMessengerPanel() {
                 >
                  
                   <div className="flex-1">
-                    <ChatTabMini />
+                    <ChatTabMini compact />
                   </div>
                 </motion.div>
               )}
