@@ -275,6 +275,8 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     if (!el) return;
     textElsRef.current.set(index, el);
   };
+  
+const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Measure all elements *after* render (not during); recalc on messages change and on resize
   useEffect(() => {
@@ -303,51 +305,48 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     return () => window.removeEventListener("resize", recalc);
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!chatId || !user || !selectedUser) return;
-    const hasText = Boolean(input.trim());
-    const hasAttachments = attachments.length > 0;
-    if (!hasText && !hasAttachments) return;
+ const sendMessage = async () => {
+  if (!chatId || !user || !selectedUser) return;
+  const hasText = Boolean(input.trim());
+  const hasAttachments = attachments.length > 0;
+  if (!hasText && !hasAttachments) return;
 
-    const messagesRef = ref(rtdb, `messages/${chatId}`);
-    try {
-      for (const att of attachments) {
-        await push(messagesRef, {
-          image: true,
-          data: att.base64,
-          mime: att.mime,
-          filename: att.filename,
-          sender: user.uid,
-          timestamp: Date.now(),
-          readBy: { [user.uid]: true },
-        });
-      }
-      if (hasText) {
-        await push(messagesRef, {
-          text: input.trim(),
-          sender: user.uid,
-          timestamp: Date.now(),
-          readBy: { [user.uid]: true },
-        });
-      }
-      await update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
-      await set(
-        ref(rtdb, `messages/${chatId}/participants/${user.uid}`),
-        true
-      ).catch(() => {});
-      await set(
-        ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`),
-        true
-      ).catch(() => {});
-    } catch (_) {}
-
-    if (typingRef) {
-      remove(typingRef);
-      typingSetRef.current = false;
+  const messagesRef = ref(rtdb, `messages/${chatId}`);
+  try {
+    for (const att of attachments) {
+      await push(messagesRef, {
+        image: true,
+        data: att.base64,
+        mime: att.mime,
+        filename: att.filename,
+        sender: user.uid,
+        timestamp: Date.now(),
+        readBy: { [user.uid]: true },
+      });
     }
-    setAttachments([]);
-    setInput("");
-  };
+    if (hasText) {
+      await push(messagesRef, {
+        text: input.trim(),
+        sender: user.uid,
+        timestamp: Date.now(),
+        readBy: { [user.uid]: true },
+      });
+    }
+    await update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
+    await set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
+    await set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+  } catch (_) {}
+
+  if (typingRef) {
+    remove(typingRef);
+    typingSetRef.current = false;
+  }
+
+  setAttachments([]);
+  setInput("");
+  inputRef.current?.focus(); // ✅ Keeps keyboard open
+};
+
 
   if (!user || !selectedUser) {
     return (
@@ -574,10 +573,10 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
                   whileTap={{ scale: 0.94 }}
                   onClick={sendMessage}
                   aria-label="Send"
-                  className={`-ml-2 inline-flex items-center gap-2 rounded-full px-3 py-1 ${compact ? "bg-indigo-600/95" : "bg-indigo-600"} hover:bg-indigo-700 text-white text-sm`}
+                  className={`-ml-2 inline-flex items-center gap-2 rounded-full px-3 py-2 ${compact ? "bg-indigo-600/95" : "bg-indigo-600"} hover:bg-indigo-700 text-white text-sm`}
                 >
                   <Send size={14} />
-                  {!compact && <span>Send</span>}
+                  
                 </motion.button>
               </div>
             </div>
