@@ -3,7 +3,7 @@ import { fetchSignInMethodsForEmail } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaApple } from "react-icons/fa";
+import { FaFacebookF, FaApple, FaUserAlt } from "react-icons/fa";
 import {
   auth,
   googleProvider,
@@ -13,7 +13,10 @@ import {
 import {
   signInWithPopup,
   createUserWithEmailAndPassword,
+  signInAnonymously ,
 } from "firebase/auth";
+import { FaPerson, FaUserSecret } from "react-icons/fa6";
+
 
 const allowedEmailDomains = [
   "gmail.com",
@@ -69,6 +72,22 @@ export default function SignupPage() {
       setError(err instanceof Error ? err.message : "Facebook signup failed.");
     }
   };
+
+  const signupAnonymously = async () => {
+  try {
+    const result = await signInAnonymously(auth);
+    const user = result.user;
+
+    // Store something in localStorage if you want to preserve session state
+    localStorage.setItem("signup_mode", "anonymous");
+    localStorage.setItem("signup_uid", user.uid);
+
+    // Redirect to the next onboarding step
+    router.push("/signup/step1");
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Anonymous signup failed.");
+  }
+};
 
   const signupWithApple = async () => {
     try {
@@ -193,6 +212,17 @@ export default function SignupPage() {
 
           {/* Right: Social Signups */}
           <div className="flex-1 w-full space-y-4">
+
+            <button
+              onClick={signupAnonymously}
+              className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
+            >
+              <span className="bg-white p-2 rounded-full text-black">
+                <FaUserAlt size={20} />
+              </span>
+              <span className="flex-1 text-left">Continue as Guest</span>
+            </button>
+
             <button
               onClick={signupWithGoogle}
               className="w-full flex items-center justify-start gap-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
@@ -202,6 +232,7 @@ export default function SignupPage() {
               </span>
               <span className="flex-1 text-left">Continue with Google</span>
             </button>
+            
 
             <button
               onClick={signupWithFacebook}
@@ -213,7 +244,7 @@ export default function SignupPage() {
               <span className="flex-1 text-left">Continue with Facebook</span>
             </button>
 
-            <button
+            {/* <button
               onClick={signupWithApple}
               className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
             >
@@ -221,7 +252,7 @@ export default function SignupPage() {
                 <FaApple size={20} />
               </span>
               <span className="flex-1 text-left">Continue with Apple</span>
-            </button>
+            </button> */}
 
             <div className="text-center pt-3">
               <a href="#" className="text-blue-600 hover:underline text-sm">
