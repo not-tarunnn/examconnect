@@ -166,7 +166,7 @@ export default function LoginPage() {
           {/* Right: Social Logins */}
           <div className="flex-1 w-full space-y-4">
 
-<button
+{/* <button
   onClick={loginAnonymously}
   className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
 >
@@ -174,7 +174,7 @@ export default function LoginPage() {
     <FaUserAlt size={20} />
   </span>
   <span className="flex-1 text-left">Continue as Guest</span>
-</button>
+</button> */}
 
             <button
               onClick={loginWithGoogle}
@@ -196,7 +196,7 @@ export default function LoginPage() {
               <span className="flex-1 text-left">Continue with Facebook</span>
             </button>
 
-            {/* <button
+            <button
               onClick={loginWithApple}
               className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
             >
@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <FaApple size={20} />
               </span>
               <span className="flex-1 text-left">Continue with Apple</span>
-            </button> */}
+            </button>
 
             <div className="text-center pt-3">
               <a href="#" className="text-blue-600 hover:underline text-sm">
