@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaApple } from "react-icons/fa";
+import { FaFacebookF, FaApple, FaUserAlt } from "react-icons/fa";
 import {
   auth,
   googleProvider,
@@ -13,6 +13,7 @@ import {
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
+  signInAnonymously,
 } from "firebase/auth";
 
 export default function LoginPage() {
@@ -50,6 +51,17 @@ export default function LoginPage() {
       else setError("Apple login failed.");
     }
   };
+
+ const loginAnonymously = async () => {
+  try {
+    await signInAnonymously(auth);
+    router.push("/dashboard");
+  } catch (err) {
+    if (err instanceof Error) setError(err.message);
+    else setError("Anonymous login failed.");
+  }
+};
+
 
   const loginWithEmail = async () => {
     setError(""); // reset error
@@ -153,6 +165,17 @@ export default function LoginPage() {
 
           {/* Right: Social Logins */}
           <div className="flex-1 w-full space-y-4">
+
+<button
+  onClick={loginAnonymously}
+  className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
+>
+  <span className="bg-white p-2 rounded-full text-black">
+    <FaUserAlt size={20} />
+  </span>
+  <span className="flex-1 text-left">Continue as Guest</span>
+</button>
+
             <button
               onClick={loginWithGoogle}
               className="w-full flex items-center justify-start gap-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
@@ -173,7 +196,7 @@ export default function LoginPage() {
               <span className="flex-1 text-left">Continue with Facebook</span>
             </button>
 
-            <button
+            {/* <button
               onClick={loginWithApple}
               className="w-full flex items-center justify-start gap-4 px-4 py-3 border border-black rounded-md hover:bg-gray-50"
             >
@@ -181,7 +204,7 @@ export default function LoginPage() {
                 <FaApple size={20} />
               </span>
               <span className="flex-1 text-left">Continue with Apple</span>
-            </button>
+            </button> */}
 
             <div className="text-center pt-3">
               <a href="#" className="text-blue-600 hover:underline text-sm">
