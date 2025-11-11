@@ -11,6 +11,7 @@ import { FaUsers, FaCog, FaBars, FaUser, FaSignOutAlt, FaAtom, FaClipboardList }
 import { useSidebarStore } from "@/store/useSidebarStore";
 import { FaFacebookMessenger, FaMessage, FaPencil, FaPlantWilt, FaXmark } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
+import LinkGoogleButton from "@/components/LinkGoogleButton.tsx";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -162,7 +163,9 @@ export default function Sidebar() {
                 ))}
 
                 <div className="my-2 h-px bg-white/10" />
-
+                <div className="px-1.5">
+             <LinkGoogleButton collapsed={false} />
+             </div>
                 <Link
                   href="/accountsetting"
                   onClick={() => setMobileOpen(false)}
@@ -271,6 +274,9 @@ export default function Sidebar() {
 
         {/* Bottom Section */}
         <div className="flex flex-col px-4 pb-4 space-y-3 text-white relative">
+
+ <LinkGoogleButton collapsed={collapsed} />
+
           <Link href="/accountsetting" className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md">
             <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
               <FaCog />
