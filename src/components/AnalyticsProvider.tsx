@@ -7,20 +7,19 @@ declare global {
 }
 
 import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function AnalyticsProvider() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!pathname) return;
 
-    const url = pathname + (searchParams.toString() ? `?${searchParams}` : "");
+    // Track pageview with GA4
     window.gtag?.("config", "G-RZMB0EDDN6", {
-      page_path: url,
+      page_path: pathname,
     });
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }

@@ -63,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     />
   </>
 )}
+
         {/* Google AdSense script */}
         <Script
           async
