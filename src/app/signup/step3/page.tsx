@@ -140,15 +140,16 @@ export default function Step3() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-              <Button asChild>
-                <Link href="/privacy-policy">View Privacy Policy</Link>
-              </Button>
-            </div>
+         <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2">
+  <Button asChild>
+    <Link href="/privacy-policy">View Privacy Policy</Link>
+  </Button>
+  <Button variant="ghost" onClick={handleDownload}>
+    <Download className="h-4 w-4 mr-2" />
+    Download
+  </Button>
+</div>
+
           </div>
 
           {/* Progress bar: step 3 = full */}

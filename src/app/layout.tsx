@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script";
 import PresenceTracker from "@/components/PresenceTracker";
+import AnalyticsProvider from "@/components/AnalyticsProvider";
 
 export const metadata: Metadata = {
   title: 'ExamConnect',
@@ -39,6 +40,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+{process.env.NODE_ENV === "production" && (
+  <>
+    {/* Google Analytics scripts */}
+    <Script
+      strategy="afterInteractive"
+      src="https://www.googletagmanager.com/gtag/js?id=G-RZMB0EDDN6"
+    />
+    <Script
+      id="google-analytics"
+      strategy="afterInteractive"
+      dangerouslySetInnerHTML={{
+        __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-RZMB0EDDN6', {
+            page_path: window.location.pathname,
+          });
+        `,
+      }}
+    />
+  </>
+)}
         {/* Google AdSense script */}
         <Script
           async
@@ -46,10 +70,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-
+        
       </head>
       <body className="flex flex-col min-h-screen">
         <PresenceTracker />
+         <AnalyticsProvider /> {/* ✅ Tracks route changes in SPA navigation */}
         <main className="flex-grow">{children}</main>
 
         {/* Vercel analytics */}

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-const classOptions = ["11", "12", "Undergraduate", "Graduate"];
+const classOptions = ["11", "12", "Undergrad", "Graduate"];
 const examOptions = ["JEE", "NEET", "CUET", "UPSC-CSE", "Others"];
 
 export default function Step2() {
