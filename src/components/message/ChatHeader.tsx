@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback} from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Camera, MoreVertical } from "lucide-react";
+import { Camera, MoreVertical,ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useChatStore } from "@/store/useChatStore";
 
 interface ChatHeaderProps {
   user: {
@@ -22,6 +23,14 @@ const ACTIVE_WINDOW_MS = 60000;
 export default function ChatHeader({ user }: ChatHeaderProps) {
   const [lastActive, setLastActive] = useState<number>(0);
   const [now, setNow] = useState<number>(Date.now());
+
+const { selectedUser, setSelectedUser: rawSetSelectedUser } = useChatStore();
+
+const setSelectedUser = useCallback(
+  (user: any) => rawSetSelectedUser(user),
+  [rawSetSelectedUser]
+);
+  const handleBack = () => setSelectedUser(null);
 
   useEffect(() => {
     const i = setInterval(() => setNow(Date.now()), 30000);
@@ -56,58 +65,73 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
   }
 
   return (
-    <motion.header
-      className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5 backdrop-blur-2xl"
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
+  <motion.header
+  className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5 backdrop-blur-2xl"
+  initial={{ opacity: 0, y: -8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.25 }}
+>
+  {/* Left: back button + avatar + name */}
+  <div className="flex items-center gap-3">
+    
+    {/* Back button */}
+    <button
+      onClick={handleBack}
+      className="text-white p-1 rounded-lg hover:bg-white/10 flex items-center justify-center"
     >
-      {/* Left: avatar + name */}
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          {user.username ? (
-            <Link href={`/profile/${encodeURIComponent(user.username)}`} aria-label={user.fullName} className="block">
-              <img
-                src={user.profilePic || "/avatar.png"}
-                alt={user.fullName}
-                className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
-              />
-            </Link>
-          ) : (
-            <img
-              src={user.profilePic || "/avatar.png"}
-              alt={user.fullName}
-              className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
-            />
-          )}
-          <span
-            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#181818] ${
-              isActive ? "bg-green-500" : "bg-gray-500"
-            }`}
-            aria-label={isActive ? "Online" : "Offline"}
-          />
-        </div>
-        <div>
-          {user.username ? (
-            <Link href={`/profile/${encodeURIComponent(user.username)}`} className="text-sm font-semibold text-white no-underline hover:no-underline">
-              {user.fullName}
-            </Link>
-          ) : (
-            <div className="text-sm font-semibold text-white">{user.fullName}</div>
-          )}
-          <div className="text-[11px] text-zinc-400">{formatLastSeen()}</div>
-        </div>
-      </div>
+      <ArrowLeft size={22} />
+    </button>
 
-      {/* Right: actions */}
-      <div className="flex items-center gap-2">
-        <button className="p-2 rounded-xl hover:bg-white/10 border border-white/10">
-          <Camera size={16} />
-        </button>
-        <button className="p-2 rounded-xl hover:bg-white/10 border border-white/10">
-          <MoreVertical size={16} />
-        </button>
-      </div>
-    </motion.header>
+    {/* Avatar */}
+    <div className="relative ml-1">
+      {user.username ? (
+        <Link href={`/profile/${encodeURIComponent(user.username)}`} aria-label={user.fullName}>
+          <img
+            src={user.profilePic || "/avatar.png"}
+            alt={user.fullName}
+            className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
+          />
+        </Link>
+      ) : (
+        <img
+          src={user.profilePic || "/avatar.png"}
+          alt={user.fullName}
+          className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm"
+        />
+      )}
+
+      <span
+        className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#181818] ${
+          isActive ? "bg-green-500" : "bg-gray-500"
+        }`}
+      />
+    </div>
+
+    {/* Name + last seen */}
+    <div>
+      {user.username ? (
+        <Link
+          href={`/profile/${encodeURIComponent(user.username)}`}
+          className="text-sm font-semibold text-white"
+        >
+          {user.fullName}
+        </Link>
+      ) : (
+        <div className="text-sm font-semibold text-white">{user.fullName}</div>
+      )}
+      <div className="text-[11px] text-zinc-400">{formatLastSeen()}</div>
+    </div>
+  </div>
+
+  {/* Right: actions */}
+  <div className="flex items-center gap-2">
+    <button className="p-2 rounded-xl hover:bg-white/10 border border-white/10">
+      <Camera size={16} />
+    </button>
+    <button className="p-2 rounded-xl hover:bg-white/10 border border-white/10">
+      <MoreVertical size={16} />
+    </button>
+  </div>
+</motion.header>
   );
 }

@@ -36,6 +36,24 @@ export default function MessagesPageClient() {
     mql.addEventListener("change", listener);
     return () => mql.removeEventListener("change", listener);
   }, []);
+useEffect(() => {
+  if (!isMobile) return;
+
+  if (selectedUser) {
+    // User opened a chat → push a new history entry
+    window.history.pushState({ chatOpen: true }, "");
+  }
+
+  const handlePopState = (e: PopStateEvent) => {
+    if (selectedUser) {
+      // Back button pressed → go back to list
+      setSelectedUser(null);
+    }
+  };
+
+  window.addEventListener("popstate", handlePopState);
+  return () => window.removeEventListener("popstate", handlePopState);
+}, [selectedUser, isMobile, setSelectedUser]);
 
   // ✅ Fetch selected user by ?uid param
   useEffect(() => {
@@ -102,18 +120,6 @@ export default function MessagesPageClient() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col bg-[#121212] overflow-hidden">
-                {/* Back header */}
-                <div className="flex items-center p-3 border-b border-white/10 bg-[#1e1e1e]">
-                  <button
-                    onClick={handleBack}
-                    className="text-white text-sm font-medium mr-3 px-2 py-1 rounded hover:bg-white/10"
-                  >
-                    ← Back
-                  </button>
-                  <span className="font-semibold truncate">
-                    {selectedUser.fullName || "Chat"}
-                  </span>
-                </div>
                  <ChatTabMini compact={false} />
               </div>
             )}
