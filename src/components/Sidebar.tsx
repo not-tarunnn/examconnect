@@ -167,9 +167,12 @@ export default function Sidebar() {
                 ))}
 
                 <div className="my-2 h-px bg-white/10" />
-                <div className="px-1.5">
-             <LinkGoogleButton collapsed={false} />
-             </div>
+                <div className="relative px-1.5">
+  <LinkGoogleButton collapsed={false} />
+
+  <span className="absolute top-4 right-5 h-2 w-2 rounded-full bg-red-500 border border-white/10 shadow-sm" />
+</div>
+
                 <Link
                   href="/accountsetting"
                   onClick={() => setMobileOpen(false)}
@@ -279,7 +282,13 @@ export default function Sidebar() {
         {/* Bottom Section */}
         <div className="flex flex-col px-4 pb-4 space-y-3 text-white relative">
 
- <LinkGoogleButton collapsed={collapsed} />
+<div className="relative">
+  <LinkGoogleButton collapsed={collapsed} />
+
+  {/* Always show the red badge on the Google button */}
+  <span className="absolute top-2 right-0 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10"></span>
+</div>
+
 
           <Link href="/accountsetting" className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md">
             <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
