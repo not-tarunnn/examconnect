@@ -573,7 +573,7 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
                   whileTap={{ scale: 0.94 }}
                   onClick={sendMessage}
                   aria-label="Send"
-                  className={`-ml-2 inline-flex items-center gap-2 rounded-full px-3 py-2 ${compact ? "bg-indigo-600/95" : "bg-indigo-600"} hover:bg-indigo-700 text-white text-sm`}
+                  className={`-ml-2 inline-flex items-center gap-2 rounded-full px-3 py-1 ${compact ? "bg-indigo-600/95" : "bg-indigo-600"} hover:bg-indigo-700 text-white text-sm`}
                 >
                   <Send size={14} />
                   

@@ -86,7 +86,7 @@ export default function Footer() {
           <a href="peers" className=" hover:text-white transition" title="Peers">
             <FaHandshakeAngle />
           </a>
-          <a href="#" className="hover:text-white transition" title="Leaderboards">
+          <a href="leaderboard" className="hover:text-white transition" title="Leaderboard">
             <FaTrophy />
           </a>
         </div>
