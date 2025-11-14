@@ -156,9 +156,13 @@ export default function Sidebar() {
                   >
                     <div className="w-6 h-6 flex items-center justify-center">{item.icon}</div>
                     <span className="text-base">{item.label}</span>
-                    {item.href === "/community" && hasUnread && (
-                      <span className="ml-auto h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
-                    )}
+                    
+                    
+{/* Messages unread */}
+{item.href === "/message" && hasUnread && (
+  <span className="ml-auto h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
+)}
+
                   </Link>
                 ))}
 
@@ -247,7 +251,7 @@ export default function Sidebar() {
         <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
           {item.icon}
         </div>
-
+      
         {item.href === "/community" && hasUnread && (
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 shadow-sm border border-white/10" />
         )}

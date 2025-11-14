@@ -400,7 +400,7 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
 
       {/* Messages */}
       <div
-        className={`flex-1 overflow-y-auto px-3 ${compact ? "pt-2 pb-20" : "pt-3 pb-28"} space-y-3 scrollbar-thin scrollbar-thumb-gray-700`}
+        className={`flex-1 overflow-y-auto px-3 ${compact ? "pt-2 pb-20" : "pt-3 pb-20"} space-y-3 scrollbar-thin scrollbar-thumb-gray-700`}
       >
         <AnimatePresence>
           {messages.map((msg, index) => (

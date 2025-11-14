@@ -77,7 +77,8 @@ const setSelectedUser = useCallback(
     {/* Back button */}
     <button
       onClick={handleBack}
-      className="text-white p-1 rounded-lg hover:bg-white/10 flex items-center justify-center"
+     className="text-white p-1 rounded-lg hover:bg-white/10 flex items-center justify-center md:hidden"
+
     >
       <ArrowLeft size={22} />
     </button>
