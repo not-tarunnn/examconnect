@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script";
 import PresenceTracker from "@/components/PresenceTracker";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
+import FCMRegistrar from '@/components/FCMRegistrar';
 
 export const metadata: Metadata = {
   title: 'ExamConnect',
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   };
 
+  
   return (
     <html lang="en">
       <head>
@@ -74,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
       </head>
       <body className="flex flex-col min-h-screen">
+         <FCMRegistrar />
         <PresenceTracker />
          <AnalyticsProvider /> {/* ✅ Tracks route changes in SPA navigation */}
         <main className="flex-grow">{children}</main>
