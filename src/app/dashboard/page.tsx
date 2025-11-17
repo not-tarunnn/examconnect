@@ -2,10 +2,12 @@
 
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
+import AutoNotification from "@/components/AutoNotification";
 
 export default function DashboardPage() {
 return (
     <div className="flex min-h-screen">
+      <AutoNotification />
       {/* Sidebar */}
       <div className="fixed sm:relative top-0 left-0 h-screen z-50">
         <Sidebar />

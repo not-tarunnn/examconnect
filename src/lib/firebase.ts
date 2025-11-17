@@ -10,7 +10,8 @@ import {
 } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
-import { getAI } from "firebase/ai"; // ✅ Firebase AI
+import { getAI } from "firebase/ai";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -23,21 +24,21 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!,
 };
 
-// ✅ Initialize Firebase app (singleton)
+// Initialize Firebase (Singleton)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Auth instance
 const auth = getAuth(app);
 
-// Firestore instance with safer transport for restricted networks
+// Firestore instance
 const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
 });
 
-// ✅ Realtime Database instance
+// Realtime Database
 const rtdb = getDatabase(app);
 
-// ✅ AI instance
+// Firebase AI
 const ai = getAI(app);
 
 // OAuth Providers
@@ -56,20 +57,36 @@ const appleProvider = new OAuthProvider("apple.com");
 appleProvider.addScope("email");
 appleProvider.addScope("name");
 
-// Ensure auth state persists
+// Ensure auth session persistence
 setPersistence(auth, browserLocalPersistence).catch((err) => {
   console.error("Failed to set auth persistence:", err);
 });
 
+// -------------------------------------------
+// 🚀 Firebase Cloud Messaging (FCM) Support
+// -------------------------------------------
+let messaging: any = null;
+
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      messaging = getMessaging(app);
+    }
+  });
+}
+
+// -------------------------------------------
 // Export everything
+// -------------------------------------------
 export {
   auth,
-  db,      // Firestore
-  rtdb,    // Realtime Database
-  ai,      // ✅ AI
+  db,
+  rtdb,
+  ai,
   googleProvider,
   facebookProvider,
   twitterProvider,
   appleProvider,
+  messaging,    // <-- ✨ FIX: now exported
   app,
 };
