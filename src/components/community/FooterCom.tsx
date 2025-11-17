@@ -54,7 +54,7 @@ export default function Footer() {
   Icon={FaFacebookMessenger}
   accent="#3b82f6" // blue ambient
   tint="rgba(59,130,246,0.22)" // blue tint
-  size={42}
+  size={40}
 >
   {hasUnread && (
     <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 border border-white/10 shadow-sm" />
@@ -72,7 +72,7 @@ export default function Footer() {
   }}
   accent="#30db5b" // Apple-style ambient green
   tint="rgba(255,205,56,0.22)" // soft yellow tint (Apple yellow)
-  size={48}
+  size={40}
 />
 
 
@@ -99,7 +99,7 @@ export default function Footer() {
       Icon={FaHandshakeAngle}
       accent="#30db5b" // Apple green ambient
       tint="rgba(48,219,91,0.20)"
-      size={48}
+      size={40}
     />
        <GlassLink
       href="/leaderboard"
@@ -107,7 +107,7 @@ export default function Footer() {
       Icon={FaTrophy}
       accent="#30db5b" // Apple green ambient
       tint="rgba(168,85,247,0.22)"
-      size={48}
+      size={40}
     />
         </div>
       </div>
