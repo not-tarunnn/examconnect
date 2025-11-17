@@ -54,7 +54,7 @@ export default function Footer() {
   Icon={FaFacebookMessenger}
   accent="#3b82f6" // blue ambient
   tint="rgba(59,130,246,0.22)" // blue tint
-  size={48}
+  size={42}
 >
   {hasUnread && (
     <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 border border-white/10 shadow-sm" />
