@@ -1,5 +1,6 @@
 'use client';
 
+import Image from "next/image";
 import Link from 'next/link';
 import Footer from '../components/Footer';
 import TypingTitle from '@/components/TypingTitle'; // Update path if needed
@@ -18,12 +19,14 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+       <div className="absolute top-4 left-4 z-50">
+        <Image src="/icon_transparent.png" alt="Logo" width={48} height={48} />
+      </div>
       {/* Main content section */}
       <main className="flex flex-1 flex-col md:flex-row">
         {/* LEFT: Animated Gradient Button Area */}
 <div className="moving-gradient-whirlpool text-black flex items-center justify-center p-10 w-full md:w-1/3 min-h-screen rounded-lg">
   <div className="flex flex-col w-full max-w-md space-y-12">
-    
     {/* Headline + Tagline */}
   <div className="w-full">
   {/* Fixed-height wrapper to reserve space for the heading */}
