@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="fixed bottom-0 left-0 w-full z-50 text-white">
+    <footer className="hidden md:block fixed bottom-0 left-0 w-full z-50 text-white">
       {/* Shadow Fade Effect */}
       <div className="absolute inset-0 h-full bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-0" />
 
