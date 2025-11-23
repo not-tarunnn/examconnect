@@ -2,7 +2,7 @@
 
 import { useSidebarStore } from "@/store/useSidebarStore";
 import Sidebar from "@/components/Sidebar";
-import FriendsAndGroupsList from "@/components/message/FandGlist";
+import FandGlist from "@/components/message/FandGlist";
 import ChatTab from "@/components/message/ChatTab";
 import { useEffect, useState, useCallback } from "react";
 import { useChatStore } from "@/store/useChatStore";
@@ -116,7 +116,7 @@ useEffect(() => {
           <>
             {!selectedUser ? (
               <div className="flex-1 bg-[#181818] overflow-y-auto">
-                <FriendsAndGroupsList />
+                <FandGlist />
               </div>
             ) : (
               <div className="flex-1 flex flex-col bg-[#121212] overflow-hidden">
@@ -127,7 +127,7 @@ useEffect(() => {
         ) : (
           <>
             <div className="w-1/4 min-w-[200px] max-w-[300px] border-r border-gray-700 bg-[#181818] overflow-y-auto">
-              <FriendsAndGroupsList />
+              <FandGlist />
             </div>
             <div className="flex-1 bg-[#121212] flex flex-col overflow-hidden">
               <ChatTab />
