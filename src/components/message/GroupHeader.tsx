@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { doc, onSnapshot } from "firebase/firestore";
 import { rtdb, db } from "@/lib/firebase";
 import { motion } from "framer-motion";
-import { Info, Plus } from 'lucide-react';
+import { ArrowLeft, Info, Plus } from 'lucide-react';
+import { useChatStore } from "@/store/useChatStore";
 
 type Props = {
   groupId: string;
@@ -85,7 +86,13 @@ export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInf
       clearInterval(timer);
     };
   }, [memberUids]);
+const { selectedUser, setSelectedUser: rawSetSelectedUser } = useChatStore();
 
+const setSelectedUser = useCallback(
+  (user: any) => rawSetSelectedUser(user),
+  [rawSetSelectedUser]
+);
+  const handleBack = () => setSelectedUser(null);
   const imgSrc = useMemo(() => {
     if (!iconBase64) return null;
     const mime = iconMime || "image/png";
@@ -100,6 +107,14 @@ export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInf
       transition={{ duration: 0.25 }}
     >
       <div className="flex items-center gap-3">
+           {/* Back button */}
+    <button
+      onClick={handleBack}
+     className="text-white p-1 rounded-lg hover:bg-white/10 flex items-center justify-center md:hidden"
+
+    >
+      <ArrowLeft size={22} />
+    </button>
         <div className="relative">
           {imgSrc ? (
             <img src={imgSrc} alt={name} className="w-11 h-11 rounded-xl object-cover border border-white/10 shadow-sm" />

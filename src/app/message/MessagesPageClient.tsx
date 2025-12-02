@@ -14,7 +14,7 @@ export default function MessagesPageClient() {
   const { collapsed } = useSidebarStore();
   const sidebarWidth = collapsed ? "w-16" : "w-64";
 
-  const { selectedUser, setSelectedUser: rawSetSelectedUser } = useChatStore();
+  const { selectedUser, setSelectedUser: rawSetSelectedUser, selectedGroup, setSelectedGroup } = useChatStore();
   const setSelectedUser = useCallback(
     (user: any) => rawSetSelectedUser(user),
     [rawSetSelectedUser]
@@ -39,21 +39,22 @@ export default function MessagesPageClient() {
 useEffect(() => {
   if (!isMobile) return;
 
-  if (selectedUser) {
+  if (selectedUser || selectedGroup) {
     // User opened a chat → push a new history entry
     window.history.pushState({ chatOpen: true }, "");
   }
 
   const handlePopState = (e: PopStateEvent) => {
-    if (selectedUser) {
+    if (selectedUser || selectedGroup) {
       // Back button pressed → go back to list
       setSelectedUser(null);
+      setSelectedGroup(null);
     }
   };
 
   window.addEventListener("popstate", handlePopState);
   return () => window.removeEventListener("popstate", handlePopState);
-}, [selectedUser, isMobile, setSelectedUser]);
+}, [selectedUser, selectedGroup, isMobile, setSelectedUser, setSelectedGroup]);
 
   // ✅ Fetch selected user by ?uid param
   useEffect(() => {
@@ -102,7 +103,7 @@ useEffect(() => {
   return (
     <div className="flex h-screen bg-[#202020] text-white">
       {/* ✅ Sidebar (hidden on mobile when chat is open) */}
-      {!isMobile || !selectedUser ? (
+      {!isMobile || (!selectedUser && !selectedGroup) ? (
         <div
           className={`z-[200] sm:relative fixed md:relative transition-all duration-300 ${sidebarWidth}`}
         >
@@ -114,7 +115,7 @@ useEffect(() => {
       <div className="flex flex-1 overflow-hidden">
         {isMobile ? (
           <>
-            {!selectedUser ? (
+            {!selectedUser && !selectedGroup ? (
               <div className="flex-1 bg-[#181818] overflow-y-auto">
                 <FandGlist />
               </div>

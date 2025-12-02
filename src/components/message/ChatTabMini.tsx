@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { rtdb, db } from "@/lib/firebase";
 import {
   onChildAdded,
@@ -12,13 +12,16 @@ import {
   get,
   update,
 } from "firebase/database";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import ChatHeader from "./ChatHeader";
+import GroupHeader from "./GroupHeader";
+import AddGroupMembersModal from "@/components/message/AddGroupMembersModal";
 import { useChatStore } from "@/store/useChatStore";
 import useAuth from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smile, Send, Check, CheckCheck } from "lucide-react";
+import { Smile, Send, Check, CheckCheck, MoreVertical } from "lucide-react";
 import AttachmentPicker from "@/components/message/AttachmentPicker";
+import Link from "next/link";
 
 type ChatTabProps = {
   compact?: boolean; // when true, render compact mini messenger styling
@@ -26,12 +29,17 @@ type ChatTabProps = {
 
 export default function ChatTabMini({ compact = true }: ChatTabProps) {
   const { user } = useAuth();
-  const { selectedUser } = useChatStore();
+  const { selectedUser, selectedGroup } = useChatStore();
 
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
+  const [typingNames, setTypingNames] = useState<string[]>([]);
+  const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  const [addMembersOpen, setAddMembersOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isGroup = Boolean(selectedGroup?.groupId);
+  const groupId = selectedGroup?.groupId || null;
   const typingSetRef = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cleanedRef = useRef(false);
@@ -51,74 +59,148 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
   const [lastActiveSelf, setLastActiveSelf] = useState<number>(0);
   const [lastActiveOther, setLastActiveOther] = useState<number>(0);
   const [now, setNow] = useState<number>(Date.now());
+  const [myDisplayName, setMyDisplayName] = useState<string>("");
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [memberInfo, setMemberInfo] = useState<Record<string, { name: string; username: string; profilePic?: string | null }>>({});
+  const [memberStates, setMemberStates] = useState<Record<string, { muted: boolean; role?: string }>>({});
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [memberUids, setMemberUids] = useState<string[]>([]);
 
   const OFFLINE_THRESHOLD_MS = Number.POSITIVE_INFINITY;
 
   const chatId =
-    user?.uid && selectedUser?.uid
+    !isGroup && user?.uid && selectedUser?.uid
       ? user.uid < selectedUser.uid
         ? `${user.uid}_${selectedUser.uid}`
         : `${selectedUser.uid}_${user.uid}`
       : null;
 
-  const typingRef =
-    user && chatId ? ref(rtdb, `messages/${chatId}/typing/${user.uid}`) : null;
-  const otherTypingRef =
-    selectedUser && chatId
-      ? ref(rtdb, `messages/${chatId}/typing/${selectedUser.uid}`)
-      : null;
-
-  // --- logic kept exactly the same ---
+  // Fetch my display name
   useEffect(() => {
-    if (!chatId) return;
-    const messagesRef = ref(rtdb, `messages/${chatId}`);
-    setMessages([]);
-    if (user && selectedUser) {
-      set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(
-        () => {}
+    if (!user?.uid) return;
+    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+      const d: any = snap.data();
+      setMyDisplayName(d?.fullName || d?.username || user.displayName || "Me");
+      setLastActiveSelf(d?.lastActive?.toMillis ? d.lastActive.toMillis() : 0);
+    });
+    return () => unsub();
+  }, [user?.uid]);
+
+  // For group: load members list and names + admin state
+  useEffect(() => {
+    if (!isGroup || !groupId) return;
+    const membersRef = ref(rtdb, `chats/${groupId}/members`);
+    const adminsRef = ref(rtdb, `chats/${groupId}/admins`);
+
+    const unsubMembers = onValue(membersRef, async (snap) => {
+      const members = snap.val() || {};
+      const uids = Object.keys(members);
+      setMemberUids(uids);
+      const names: Record<string, string> = {};
+      const info: Record<string, { name: string; username: string; profilePic?: string | null }> = {};
+      const states: Record<string, { muted: boolean; role?: string }> = {};
+      await Promise.all(
+        uids.map(async (uid) => {
+          const state = members[uid] || {};
+          states[uid] = { muted: !!state.muted, role: state.role };
+          try {
+            const s = await getDoc(doc(db, "users", uid));
+            const d: any = s.data() || {};
+            const nm = d.fullName || d.username || uid;
+            names[uid] = nm;
+            info[uid] = { name: nm, username: d.username || "", profilePic: d.profilePic || d.profilePicture || null };
+          } catch (_) {
+            names[uid] = uid;
+            info[uid] = { name: uid, username: "", profilePic: null };
+          }
+        })
       );
-      set(
-        ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`),
-        true
-      ).catch(() => {});
+      setMemberNames(names);
+      setMemberInfo(info);
+      setMemberStates(states);
+    });
+
+    const unsubAdmins = onValue(adminsRef, (snap) => {
+      const admins = snap.val() || {};
+      setIsAdmin(!!(user?.uid && admins[user.uid]));
+    });
+
+    return () => { unsubMembers(); unsubAdmins(); };
+  }, [isGroup, groupId, user?.uid]);
+
+  // Typing refs
+  const typingRef = useMemo(() => {
+    if (!user) return null;
+    if (isGroup && groupId) return ref(rtdb, `groupMessages/${groupId}/typing/${user.uid}`);
+    if (chatId) return ref(rtdb, `messages/${chatId}/typing/${user.uid}`);
+    return null;
+  }, [user, isGroup, groupId, chatId]);
+
+  const otherTypingRef = useMemo(() => {
+    if (isGroup) return null;
+    if (selectedUser && chatId) return ref(rtdb, `messages/${chatId}/typing/${selectedUser.uid}`);
+    return null;
+  }, [isGroup, selectedUser, chatId]);
+
+  const groupTypingRootRef = useMemo(() => {
+    if (!isGroup || !groupId) return null;
+    return ref(rtdb, `groupMessages/${groupId}/typing`);
+  }, [isGroup, groupId]);
+
+  // Subscribe to messages
+  useEffect(() => {
+    const path = isGroup && groupId ? `groupMessages/${groupId}` : chatId ? `messages/${chatId}` : null;
+    if (!path) return;
+    const messagesRef = ref(rtdb, path);
+    setMessages([]);
+
+    // ensure participants include me
+    if (user?.uid) {
+      set(ref(rtdb, `${path}/participants/${user.uid}`), true).catch(() => {});
     }
+    if (!isGroup && selectedUser?.uid && user?.uid) {
+      set(ref(rtdb, `${path}/participants/${selectedUser.uid}`), true).catch(() => {});
+    }
+
     const unsubscribe = onChildAdded(messagesRef, (snapshot) => {
-      if (
-        snapshot.key === "typing" ||
-        snapshot.key === "participants" ||
-        snapshot.key === "lastMessageAt"
-      )
-        return;
+      const key = snapshot.key;
+      if (!key || key === "typing" || key === "participants" || key === "lastMessageAt") return;
       setMessages((prev) => [...prev, snapshot.val()]);
     });
     return () => unsubscribe();
-  }, [chatId, user?.uid, selectedUser?.uid]);
+  }, [isGroup, groupId, chatId, selectedUser?.uid, user?.uid]);
 
   // Mark all messages in this chat as read by current user when opening the chat
   useEffect(() => {
-    if (!chatId || !user?.uid) return;
+    const path = isGroup && groupId ? `groupMessages/${groupId}` : chatId ? `messages/${chatId}` : null;
+    if (!path || !user?.uid) return;
     const markRead = async () => {
       try {
-        const snap = await get(ref(rtdb, `messages/${chatId}`));
+        const snap = await get(ref(rtdb, path));
         if (!snap.exists()) return;
         const updates: any = {};
         snap.forEach((child) => {
           const key = child.key;
           if (!key) return;
-          if (key === "typing" || key === "participants" || key === "lastMessageAt")
-            return;
+          if (key === "typing" || key === "participants" || key === "lastMessageAt") return;
           const val = child.val() || {};
-          if (val.readBy && val.readBy[user.uid]) return;
-          updates[`messages/${chatId}/${key}/readBy/${user.uid}`] = true;
+          if (!(val.readBy && val.readBy[user.uid])) {
+            updates[`${path}/${key}/readBy/${user.uid}`] = true;
+          }
+          // store name in seenBy for groups
+          if (isGroup) {
+            updates[`${path}/${key}/seenBy/${user.uid}`] = myDisplayName || user.uid;
+          }
         });
         if (Object.keys(updates).length) {
           await update(ref(rtdb), updates);
         }
-      } catch (err) {}
+      } catch (_) {}
     };
     void markRead();
-  }, [chatId, user?.uid]);
+  }, [isGroup, groupId, chatId, user?.uid, myDisplayName]);
 
+  // Typing subscriptions
   useEffect(() => {
     if (!otherTypingRef) return;
     const unsubscribeTyping = onValue(otherTypingRef, (snapshot) => {
@@ -127,6 +209,22 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     return () => unsubscribeTyping();
   }, [otherTypingRef]);
 
+  useEffect(() => {
+    if (!groupTypingRootRef || !user?.uid) return;
+    const unsub = onValue(groupTypingRootRef, (snap) => {
+      const val = snap.val() || {};
+      const names: string[] = [];
+      Object.keys(val).forEach((uid) => {
+        if (uid === user.uid) return;
+        const display = typeof val[uid] === "string" ? val[uid] : (memberNames[uid] || uid);
+        if (display) names.push(display);
+      });
+      setTypingNames(names);
+    });
+    return () => unsub();
+  }, [groupTypingRootRef, user?.uid, memberNames]);
+
+  // Clear typing on blur or visibility change
   useEffect(() => {
     if (!typingRef) return;
     const clearTyping = () => {
@@ -145,6 +243,7 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     };
   }, [typingRef]);
 
+  // Write typing state when input changes
   useEffect(() => {
     if (!typingRef) return;
     const ensureRemove = () => {
@@ -154,7 +253,8 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     };
     if (input.length > 0) {
       if (!typingSetRef.current) {
-        set(typingRef, true).catch(() => {});
+        const val = isGroup ? (myDisplayName || "Typing") : true;
+        set(typingRef, val as any).catch(() => {});
         typingSetRef.current = true;
       }
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -165,7 +265,7 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [input, typingRef]);
+  }, [input, typingRef, isGroup, myDisplayName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -255,7 +355,7 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     return `${hh}:${mm}`;
   };
 
-  const getReadStatus = (msg: any): "none" | "single" | "double" => {
+  const getReadStatusDM = (msg: any): "none" | "single" | "double" => {
     const rb = (msg && msg.readBy) || {};
     const hasMe = user?.uid ? Boolean(rb[user.uid]) : false;
     const hasOther = selectedUser?.uid ? Boolean(rb[selectedUser.uid]) : false;
@@ -264,6 +364,20 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     if (count >= 1) return "single";
     return "none";
   };
+
+  const getReadStatusGroup = (msg: any): "none" | "single" | "double" => {
+    const rb = (msg && msg.readBy) || {};
+    const memberCount = memberUids.length || 0;
+    let seenCount = 0;
+    memberUids.forEach((uid) => {
+      if (rb[uid]) seenCount += 1;
+    });
+    if (memberCount > 0 && seenCount >= memberCount) return "double";
+    if (seenCount > 0) return "single";
+    return "none";
+  };
+
+  const getReadStatus = (msg: any) => (isGroup ? getReadStatusGroup(msg) : getReadStatusDM(msg));
 
   const textElsRef = useRef<Map<number, HTMLElement>>(new Map());
   const [singleLineMap, setSingleLineMap] = useState<Record<number, boolean>>(
@@ -306,12 +420,15 @@ const inputRef = useRef<HTMLInputElement | null>(null);
   }, [messages]);
 
  const sendMessage = async () => {
-  if (!chatId || !user || !selectedUser) return;
+  if (!user) return;
+  const path = isGroup && groupId ? `groupMessages/${groupId}` : chatId ? `messages/${chatId}` : null;
+  if (!path) return;
+
   const hasText = Boolean(input.trim());
   const hasAttachments = attachments.length > 0;
   if (!hasText && !hasAttachments) return;
 
-  const messagesRef = ref(rtdb, `messages/${chatId}`);
+  const messagesRef = ref(rtdb, path);
   try {
     for (const att of attachments) {
       await push(messagesRef, {
@@ -320,38 +437,43 @@ const inputRef = useRef<HTMLInputElement | null>(null);
         mime: att.mime,
         filename: att.filename,
         sender: user.uid,
+        senderName: myDisplayName || user.uid,
         timestamp: Date.now(),
         readBy: { [user.uid]: true },
+        ...(isGroup ? { seenBy: { [user.uid]: myDisplayName || user.uid } } : {}),
       });
     }
     if (hasText) {
       await push(messagesRef, {
         text: input.trim(),
         sender: user.uid,
+        senderName: myDisplayName || user.uid,
         timestamp: Date.now(),
         readBy: { [user.uid]: true },
+        ...(isGroup ? { seenBy: { [user.uid]: myDisplayName || user.uid } } : {}),
       });
     }
     await update(messagesRef, { lastMessageAt: Date.now() }).catch(() => {});
-    await set(ref(rtdb, `messages/${chatId}/participants/${user.uid}`), true).catch(() => {});
-    await set(ref(rtdb, `messages/${chatId}/participants/${selectedUser.uid}`), true).catch(() => {});
+    await set(ref(rtdb, `${path}/participants/${user.uid}`), true).catch(() => {});
+    if (!isGroup && selectedUser?.uid) {
+      await set(ref(rtdb, `${path}/participants/${selectedUser.uid}`), true).catch(() => {});
+    }
   } catch (_) {}
 
   if (typingRef) {
     remove(typingRef);
     typingSetRef.current = false;
   }
-
   setAttachments([]);
   setInput("");
-  inputRef.current?.focus(); // ✅ Keeps keyboard open
+  inputRef.current?.focus();
 };
 
 
-  if (!user || !selectedUser) {
+  if (!user || (!selectedUser && !selectedGroup)) {
     return (
       <div className={`flex flex-1 items-center justify-center text-gray-400 ${compact ? "w-[320px] h-[500px]" : ""}`}>
-        Select a user to start chatting.
+        Select a chat to start messaging.
       </div>
     );
   }
@@ -396,7 +518,18 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
       }}
       style={compact ? { borderRadius: 18 } : undefined}
     >
-      <ChatHeader user={selectedUser} currentUserId={user.uid}  />
+      {isGroup && groupId && selectedGroup ? (
+        <GroupHeader
+          groupId={groupId}
+          name={selectedGroup.name}
+          iconBase64={selectedGroup.iconBase64 || null}
+          iconMime={selectedGroup.iconMime || null}
+          onInfoAction={() => setGroupInfoOpen(true)}
+          onAddAction={() => setAddMembersOpen(true)}
+        />
+      ) : selectedUser ? (
+        <ChatHeader user={selectedUser} currentUserId={user.uid} />
+      ) : null}
 
       {/* Messages */}
       <div
@@ -413,6 +546,11 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
               className={`flex ${msg.sender === user.uid ? "justify-end" : "justify-start"}`}
             >
               <div className={messageMaxWidth}>
+                {isGroup && msg.sender !== user.uid && (
+                  <div className="text-[10px] text-zinc-400 mb-0.5 ml-1">
+                    {memberNames[msg.sender] || msg.sender}
+                  </div>
+                )}
                 {msg && msg.data && msg.mime ? (
                   <div className="relative inline-block">
                     <img
@@ -496,21 +634,44 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
           >
             <div className="relative">
               <AnimatePresence>
-                {otherTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    className="absolute -top-8 left-4"
-                  >
-                    <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020]/70 border border-gray-700 rounded-full px-3 py-1 backdrop-blur">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-                      </span>
-                      <span>Typing…</span>
-                    </div>
-                  </motion.div>
+                {isGroup ? (
+                  typingNames.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      className="absolute -top-8 left-4"
+                    >
+                      <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020]/70 border border-gray-700 rounded-full px-3 py-1 backdrop-blur">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                        </span>
+                        <span>
+                          {typingNames.slice(0, 3).join(", ")}
+                          {typingNames.length > 3 ? ` +${typingNames.length - 3}` : ""}
+                          {typingNames.length === 1 ? " is typing…" : " are typing…"}
+                        </span>
+                      </div>
+                    </motion.div>
+                  )
+                ) : (
+                  otherTyping && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      className="absolute -top-8 left-4"
+                    >
+                      <div className="inline-flex items-center gap-2 text-xs text-gray-300 bg-[#202020]/70 border border-gray-700 rounded-full px-3 py-1 backdrop-blur">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                        </span>
+                        <span>Typing…</span>
+                      </div>
+                    </motion.div>
+                  )
                 )}
               </AnimatePresence>
               <div
@@ -582,6 +743,93 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
             </div>
           </motion.div>
         </div>
+      </div>
+
+      {isGroup && groupInfoOpen && groupId && (
+        <motion.aside
+          initial={{ x: 320, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 320, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="absolute right-0 top-0 h-full w-[320px] bg-[#181818] border-l border-white/10 shadow-xl flex flex-col z-50"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="font-semibold">Group info</div>
+            <button onClick={() => setGroupInfoOpen(false)} className="text-sm text-zinc-300 hover:text-white">Close</button>
+          </div>
+
+          <div className="p-4 space-y-4 overflow-y-auto">
+            <GroupDescription groupId={groupId} />
+            <div>
+              <div className="text-xs uppercase tracking-wide text-zinc-400 mb-2">Members</div>
+              <div className="space-y-2">
+                {memberUids.map((uid) => {
+                  const info = memberInfo[uid];
+                  const name = info?.name || memberNames[uid] || uid;
+                  const username = info?.username || "";
+                  const muted = !!memberStates[uid]?.muted;
+                  const profileLink = username ? `/profile/${encodeURIComponent(username)}` : "#";
+                  return (
+                    <div key={uid} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                      {info?.profilePic ? (
+                        <img src={info.profilePic} alt={name} className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-semibold">
+                          {name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <Link href={profileLink} className="text-sm text-white hover:underline truncate">{name}</Link>
+                        {username && <div className="text-xs text-zinc-400 truncate">@{username}</div>}
+                      </div>
+                      {isAdmin && uid !== user?.uid && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await set(ref(rtdb, `chats/${groupId}/members/${uid}/muted`), !muted);
+                              setMemberStates((s) => ({ ...s, [uid]: { ...s[uid], muted: !muted } }));
+                            } catch (_) {}
+                          }}
+                          className={`text-xs px-2 py-1 rounded border ${muted ? "border-green-500 text-green-400" : "border-zinc-500 text-zinc-300"}`}
+                        >
+                          {muted ? "Unmute" : "Mute"}
+                        </button>
+                      )}
+                      <Link href={profileLink} className="p-1.5 rounded-lg hover:bg-white/10" aria-label="More actions">
+                        <MoreVertical size={16} />
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </motion.aside>
+      )}
+
+      <AddGroupMembersModal
+        open={!!(isGroup && addMembersOpen && groupId)}
+        onOpenChangeAction={setAddMembersOpen}
+        groupId={groupId || ""}
+        currentUid={user?.uid || null}
+        existingMemberUids={memberUids}
+      />
+    </div>
+  );
+}
+
+function GroupDescription({ groupId }: { groupId: string }) {
+  const [desc, setDesc] = useState<string>("");
+  useEffect(() => {
+    const infoRef = ref(rtdb, `chats/${groupId}/description`);
+    const unsub = onValue(infoRef, (snap) => setDesc(snap.val() || ""));
+    return () => unsub();
+  }, [groupId]);
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wide text-zinc-400 mb-1">Description</div>
+      <div className="text-sm text-zinc-200 whitespace-pre-wrap break-words bg-white/5 border border-white/10 rounded-lg p-3 min-h-[44px]">
+        {desc || "No description"}
       </div>
     </div>
   );
