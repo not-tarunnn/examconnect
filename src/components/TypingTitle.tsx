@@ -29,10 +29,10 @@ const TypingTitle = () => {
 
   return (
     <motion.h2
-      className="relative text-7xl text-slate-800 font-extrabold uppercase leading-tight tracking-tight break-words text-left whitespace-pre-line"
+      className="relative text-7xl text-white font-extrabold uppercase leading-tight tracking-tight break-words text-left whitespace-pre-line"
     >
       {displayedText}
-      <span className="inline-block w-[0.2em] h-[0.8em] bg-slate-800 ml-1 animate-pulse translate-x-1 " />
+      <span className="inline-block w-[0.2em] h-[0.8em] bg-white ml-1 animate-pulse translate-x-1 " />
     </motion.h2>
   );
 };

@@ -9,6 +9,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import ChatTabMini from "@/components/message/ChatTabMini";
+import ShareInviteModal from "@/components/message/ShareInviteModal";
 
 export default function MessagesPageClient() {
   const { collapsed } = useSidebarStore();
@@ -136,6 +137,9 @@ useEffect(() => {
           </>
         )}
       </div>
+
+      {/* ✅ Share Invite Modal - rendered at root level */}
+      <ShareInviteModal />
     </div>
   );
 }

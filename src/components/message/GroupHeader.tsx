@@ -5,8 +5,9 @@ import { ref, onValue } from "firebase/database";
 import { doc, onSnapshot } from "firebase/firestore";
 import { rtdb, db } from "@/lib/firebase";
 import { motion } from "framer-motion";
-import { ArrowLeft, Info, Plus } from 'lucide-react';
+import { ArrowLeft, Info, Plus, Share2 } from 'lucide-react';
 import { useChatStore } from "@/store/useChatStore";
+import { useShareModalStore } from "@/store/useShareModalStore";
 
 type Props = {
   groupId: string;
@@ -20,6 +21,7 @@ type Props = {
 export default function GroupHeader({ groupId, name, iconBase64, iconMime, onInfoAction, onAddAction }: Props) {
   const [memberUids, setMemberUids] = useState<string[]>([]);
   const [onlineCount, setOnlineCount] = useState<number>(0);
+  const { openModal } = useShareModalStore();
 
   useEffect(() => {
     const membersRef = ref(rtdb, `chats/${groupId}/members`);
@@ -135,6 +137,9 @@ const setSelectedUser = useCallback(
       <div className="flex items-center gap-2">
         <button onClick={() => onAddAction && onAddAction()} className="p-2 rounded-xl hover:bg-white/10 border border-white/10" aria-label="Add members">
           <Plus size={18} color="currentColor" strokeWidth={2} />
+        </button>
+        <button onClick={() => openModal(groupId, name)} className="p-2 rounded-xl hover:bg-white/10 border border-white/10" aria-label="Share group invite">
+          <Share2 size={18} color="currentColor" strokeWidth={2} />
         </button>
         <button onClick={() => onInfoAction && onInfoAction()} className="p-2 rounded-xl hover:bg-white/10 border border-white/10" aria-label="Group info">
           <Info size={18} color="currentColor" strokeWidth={2} />

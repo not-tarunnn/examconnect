@@ -17,6 +17,20 @@ type Note = {
 
 const SAMPLE_NOTES: Note[] = [
    {
+  id: "2025-12-04",
+  date: "December 4, 2025",
+  title: "💬 Group Message UI/UX & Viral Update",
+  highlights: ["Enhanced mobile UI/UX", "Emojis in group messages", "Group invitations feature"],
+  changes: [
+    "The **group message interface** has been optimized for mobile, ensuring a smooth and seamless experience on all screen sizes.",
+    "Emojis now **pop out of the message div** for a more expressive and dynamic chat experience.",
+    "A **group invitation** feature has been introduced, allowing users to easily invite others to join group chats with a simple tap.",
+    "Performance improvements for better mobile responsiveness and faster message load times.",
+    "These changes enhance the overall usability and viral potential of group messaging on mobile devices."
+  ]
+}
+,
+  {
   id: "2025-11-06",
   date: "November 6, 2025",
   title: "📱 Mobile Optimization Update",

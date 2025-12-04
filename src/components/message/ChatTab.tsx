@@ -373,6 +373,25 @@ export default function ChatTab() {
 
   const getReadStatus = (msg: any) => (isGroup ? getReadStatusGroup(msg) : getReadStatusDM(msg));
 
+  // Helper to detect if a message contains only emojis (and whitespace)
+  const isEmojiOnly = (text: string): boolean => {
+    if (!text || !text.trim()) return false;
+    // Remove all emojis and whitespace, if anything remains, it's not emoji-only
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji})/gu;
+    const withoutEmojis = text.replace(emojiRegex, "").trim();
+    return withoutEmojis.length === 0 && text.trim().length > 0;
+  };
+
+  // Get emoji font size based on count
+  const getEmojiFontSize = (text: string): string => {
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji})/gu;
+    const emojiMatches = text.match(emojiRegex) || [];
+    const count = emojiMatches.length;
+    if (count === 1) return "text-6xl";
+    if (count <= 3) return "text-5xl";
+    return "text-4xl";
+  };
+
   const textElsRef = useRef<Map<number, HTMLElement>>(new Map());
   const [singleLineMap, setSingleLineMap] = useState<Record<number, boolean>>({});
 
@@ -541,7 +560,7 @@ export default function ChatTab() {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 320, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="absolute right-0 top-0 h-full w-[320px] bg-[#181818] border-l border-white/10 shadow-xl flex flex-col"
+          className="absolute right-0 top-0 h-full w-[320px] bg-[#181818] border-l border-white/10 shadow-xl flex flex-col z-50"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div className="font-semibold">Group info</div>
@@ -636,6 +655,22 @@ export default function ChatTab() {
                         <CheckCheck size={12} className="opacity-80" />
                       ) : getReadStatus(msg) === "single" ? (
                         <Check size={12} className="opacity-80" />
+                      ) : null}
+                    </div>
+                  </div>
+                ) : isEmojiOnly(msg.text) ? (
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`${getEmojiFontSize(msg.text)} leading-none`}>
+                      {msg.text}
+                    </div>
+                    <div
+                      className={`text-[10px] ${msg.sender === user.uid ? "text-white/80" : "text-zinc-400"}`}
+                    >
+                      <span>{formatHHMM(msg.timestamp)}</span>
+                      {getReadStatus(msg) === "double" ? (
+                        <CheckCheck size={10} className="ml-1 opacity-80 inline" />
+                      ) : getReadStatus(msg) === "single" ? (
+                        <Check size={10} className="ml-1 opacity-80 inline" />
                       ) : null}
                     </div>
                   </div>
