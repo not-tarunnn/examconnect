@@ -11,10 +11,11 @@ import Link from "next/link";
 import ShareModal from "@/components/community/ShareModal";
 
 export type PostProps = {
+  communityHandle?: any;
   id: string;
   title: string;
-  mediaUrl: string;
-  type: "image" | "video";
+  mediaUrl?: string;
+  type?: "image" | "video" | "text";
   reactions: {
     likes: number;
     dislikes: number;

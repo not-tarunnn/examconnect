@@ -11,15 +11,15 @@ import { X } from "lucide-react";
 type CreateSubcommunityModalProps = {
   isOpen: boolean;
   community: Community;
-  onClose: () => void;
-  onSuccess: (subcommunity: Subcommunity & { id: string }) => void;
+  onCloseAction: () => void;
+  onSuccessAction: (subcommunity: Subcommunity & { id: string }) => void;
 };
 
 export default function CreateSubcommunityModal({
   isOpen,
   community,
-  onClose,
-  onSuccess,
+  onCloseAction,
+  onSuccessAction,
 }: CreateSubcommunityModalProps) {
   const auth = getAuth();
   const user = auth.currentUser;
@@ -57,16 +57,17 @@ export default function CreateSubcommunityModal({
         parentCommunityHandle: community.handle,
         createdBy: user.uid,
         memberCount: 1,
+        id: ""
       };
 
       const id = await createSubcommunity(subcommunityData);
-      onSuccess({ ...subcommunityData, id });
+      onSuccessAction({ ...subcommunityData, id });
       setFormData({
         name: "",
         handle: "",
         description: "",
       });
-      onClose();
+      onCloseAction();
     } catch (err) {
       console.error("Error creating subcommunity:", err);
       setError(
@@ -88,7 +89,7 @@ export default function CreateSubcommunityModal({
         <div className="border-b border-[#343536] px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Create a Subcommunity</h2>
           <button
-            onClick={onClose}
+            onClick={onCloseAction}
             className="p-1 hover:bg-[#2a2a2a] rounded transition-colors"
           >
             <X size={24} />
@@ -169,7 +170,7 @@ export default function CreateSubcommunityModal({
           <div className="flex justify-end gap-2 pt-6 border-t border-[#343536]">
             <Button
               type="button"
-              onClick={onClose}
+              onClick={onCloseAction}
               variant="ghost"
               className="text-gray-400 hover:text-white"
             >

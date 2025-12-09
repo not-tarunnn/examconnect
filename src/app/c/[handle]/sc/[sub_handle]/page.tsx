@@ -237,7 +237,13 @@ export default function SubcommunityPage() {
             {posts.length > 0 ? (
               <div className="space-y-2">
                 {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard
+  key={post.id}
+  post={{
+    ...post,
+    createdAt: post.createdAt || new Date(),
+  }}
+/>
                 ))}
                 {hasMore && (
                   <button

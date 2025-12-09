@@ -161,8 +161,8 @@ export default function CommunityInfo({
       <CreateSubcommunityModal
         isOpen={showCreateSubcommunity}
         community={community}
-        onClose={() => setShowCreateSubcommunity(false)}
-        onSuccess={handleSubcommunityCreated}
+        onCloseAction={() => setShowCreateSubcommunity(false)}
+        onSuccessAction={handleSubcommunityCreated}
       />
     </div>
   );

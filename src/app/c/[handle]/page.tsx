@@ -204,8 +204,14 @@ export default function CommunityPage() {
             {posts.length > 0 ? (
               <div className="space-y-2">
                 {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+ <PostCard
+  post={{
+    ...post,
+    communityHandle: handle,
+    createdAt: post.createdAt || new Date(), // default if missing
+  }}
+/>
+))}
                 {hasMore && (
                   <button
                     onClick={handleLoadMore}

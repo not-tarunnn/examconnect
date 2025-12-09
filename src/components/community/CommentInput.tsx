@@ -54,6 +54,7 @@ export default function CommentInput({ postId, parentCommentId = null, onSubmitt
             postId,
             communityId: post.communityId,
             reactions: { likes: 0, dislikes: 0 },
+            id: ""
           });
         } else {
           // Fallback for posts not in new system

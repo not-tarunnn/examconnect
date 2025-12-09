@@ -101,6 +101,7 @@ export default function CreatePostModal({
         reactions: { likes: 0, dislikes: 0 },
         commentsCount: 0,
         views: 0,
+        id: ""
       });
 
       // reset form

@@ -42,7 +42,7 @@ export interface Community {
 }
 
 export interface Subcommunity {
-  id?: string;
+  id: string;
   name: string;
   handle: string;
   description: string;
@@ -58,7 +58,7 @@ export interface Subcommunity {
 }
 
 export interface Post {
-  id?: string;
+  id: string;
   title: string;
   description?: string;
   mediaUrl?: string;
@@ -85,7 +85,7 @@ export interface Post {
 }
 
 export interface Comment {
-  id?: string;
+  id: string;
   text: string;
   author: {
     id: string;
