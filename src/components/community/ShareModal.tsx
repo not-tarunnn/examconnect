@@ -41,7 +41,7 @@ export default function ShareModal({ open, onClose, postUrl, theme = "dark" }: S
         <>
           {/* Background Overlay */}
           <motion.div
-            className={`fixed inset-0 z-40 backdrop-blur-sm ${isDark ? "bg-black/40" : "bg-gray-200/40"}`}
+            className={`fixed inset-0 z-[998] backdrop-blur-sm ${isDark ? "bg-black/40" : "bg-gray-200/40"}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -50,7 +50,7 @@ export default function ShareModal({ open, onClose, postUrl, theme = "dark" }: S
 
           {/* Modal */}
           <motion.div
-            className={`fixed z-50 inset-x-0 bottom-0 mx-auto max-w-sm rounded-t-3xl shadow-xl p-6 flex flex-col items-center
+            className={`fixed z-[999] inset-x-0 bottom-0 mx-auto max-w-sm rounded-t-3xl shadow-2xl p-6 flex flex-col items-center
               ${isDark ? "bg-[#202020] text-white" : "bg-white text-gray-800"}
             `}
             initial={{ y: "100%" }}

@@ -11,7 +11,6 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 import AdSlot from "@/components/ads/AdSlot";
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState("stats");
   const { collapsed } = useSidebarStore();
 
   return (
@@ -44,8 +43,8 @@ export default function CommunityPage() {
 
           {/* Popular Communities - Closer to posts */}
           <div className="hidden lg:block w-72 flex-shrink-0">
-          <div className="translate-x-32 fixed">
-            {/* Insert ad
+            <div className="translate-x-32 fixed">
+              {/* Insert ad
         <AdSlot
           adClient="ca-pub-6676209672905473"
           adSlot="1204660986"
@@ -53,9 +52,9 @@ export default function CommunityPage() {
           style={{ display: "block" }}
         /> */}
             </div>
-           <SuggestedGroups /> 
+            <SuggestedGroups />
           </div>
-        </main> 
+        </main>
 
         {/* Copyright Footer */}
         <CopyrightFooter />

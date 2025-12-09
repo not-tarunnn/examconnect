@@ -1,6 +1,9 @@
 "use client";
 
-import { Users, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Users, TrendingUp, Plus } from "lucide-react";
+import CreateCommunityModal from "@/components/community/CreateCommunityModal";
+import { Community } from "@/lib/communityService";
 
 interface GroupData {
   id: string;
@@ -35,6 +38,12 @@ const mockGroups: GroupData[] = [
 ];
 
 export default function SuggestedGroups() {
+  const [showCreateCommunity, setShowCreateCommunity] = useState(false);
+
+  const handleCommunityCreated = (newCommunity: Community & { id: string }) => {
+    setShowCreateCommunity(false);
+  };
+
   const formatMemberCount = (count: number) => {
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
@@ -91,7 +100,15 @@ export default function SuggestedGroups() {
         ))}
       </div>
 
-      <button className="w-full mt-3 text-blue-400 hover:bg-[#272729] text-xs py-1.5 rounded transition-colors">
+      <button
+        onClick={() => setShowCreateCommunity(true)}
+        className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 rounded transition-colors flex items-center justify-center gap-1 font-medium"
+      >
+        <Plus size={14} />
+        Create Community
+      </button>
+
+      <button className="w-full mt-2 text-blue-400 hover:bg-[#272729] text-xs py-1.5 rounded transition-colors">
         View All
       </button>
 
@@ -117,6 +134,12 @@ export default function SuggestedGroups() {
           ))}
         </div>
       </div>
+
+      <CreateCommunityModal
+        isOpen={showCreateCommunity}
+        onClose={() => setShowCreateCommunity(false)}
+        onSuccess={handleCommunityCreated}
+      />
     </div>
   );
 }

@@ -1,23 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createPost } from "@/lib/communityService";
+import { Community, getAllCommunities } from "@/lib/communityService";
 
 type CreatePostModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
+  defaultCommunityId?: string;
 };
 
-export default function CreatePostModal({ isOpen, onCloseAction }: CreatePostModalProps) {
+export default function CreatePostModal({
+  isOpen,
+  onCloseAction,
+  defaultCommunityId
+}: CreatePostModalProps) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState(""); // ✅ new state
+  const [description, setDescription] = useState("");
   const [file, setFile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [communities, setCommunities] = useState<Community[]>([]);
+  const [selectedCommunityId, setSelectedCommunityId] = useState(defaultCommunityId || "");
+  const [communitiesLoading, setCommunitiesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      try {
+        setCommunitiesLoading(true);
+        const { communities } = await getAllCommunities(100);
+        setCommunities(communities);
+      } catch (error) {
+        console.error("Error fetching communities:", error);
+      } finally {
+        setCommunitiesLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchCommunities();
+    }
+  }, [isOpen]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -31,59 +59,94 @@ export default function CreatePostModal({ isOpen, onCloseAction }: CreatePostMod
   };
 
   const handleSubmit = async () => {
-  const auth = getAuth();
-  const user = auth.currentUser;
-  if (!user) return;
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
 
-  if (!title.trim()) return;
+    if (!title.trim()) return;
 
-  setLoading(true);
-  try {
-    // ✅ Fetch username by querying where uid == currentUser.uid
-    const q = query(
-      collection(db, "usernames"),
-      where("uid", "==", user.uid)
-    );
-    const snapshot = await getDocs(q);
+    setLoading(true);
+    try {
+      // Fetch username by querying where uid == currentUser.uid
+      const q = query(
+        collection(db, "usernames"),
+        where("uid", "==", user.uid)
+      );
+      const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      throw new Error("No username found for this user.");
+      if (snapshot.empty) {
+        throw new Error("No username found for this user.");
+      }
+
+      const username = snapshot.docs[0].id; // doc ID is the username
+
+      // Find selected community details
+      const selectedCommunity = communities.find((c) => c.id === selectedCommunityId);
+
+      await createPost({
+        title,
+        description: description.trim() || undefined,
+        mediaUrl: file || undefined,
+        type: file
+          ? file.includes("video")
+            ? "video"
+            : "image"
+          : "text",
+        author: {
+          id: user.uid,
+          username,
+        },
+        communityId: selectedCommunityId || undefined,
+        communityHandle: selectedCommunity?.handle || undefined,
+        reactions: { likes: 0, dislikes: 0 },
+        commentsCount: 0,
+        views: 0,
+      });
+
+      // reset form
+      setTitle("");
+      setDescription("");
+      setFile(null);
+      setSelectedCommunityId("");
+      onCloseAction();
+    } catch (err) {
+      console.error("Error adding post:", err);
     }
-
-    const username = snapshot.docs[0].id; // doc ID is the username
-
-    await addDoc(collection(db, "posts"), {
-      author: {
-        id: user.uid,
-        username, // ✅ store username from doc ID
-      },
-      title,
-      description: description.trim() || null,
-      mediaUrl: file || null,
-      type: file?.includes("video") ? "video" : "image",
-      reactions: { likes: 0, dislikes: 0 },
-      commentsCount: 0,
-      createdAt: serverTimestamp(),
-    });
-
-    // ✅ reset form
-    setTitle("");
-    setDescription("");
-    setFile(null);
-    onCloseAction();
-  } catch (err) {
-    console.error("Error adding post:", err);
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] text-white rounded-2xl w-full max-w-lg p-6 shadow-lg">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999]">
+      <div className="bg-[#1a1a1a] text-white rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Create a Post</h2>
+
+        {/* Community Selector */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Community (Optional)
+          </label>
+          {communitiesLoading ? (
+            <div className="bg-[#2a2a2a] border border-[#343536] rounded-md px-3 py-2 text-gray-400">
+              Loading communities...
+            </div>
+          ) : (
+            <select
+              value={selectedCommunityId}
+              onChange={(e) => setSelectedCommunityId(e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#343536] text-white rounded-md px-3 py-2"
+            >
+              <option value="">General (No specific community)</option>
+              {communities.map((community) => (
+                <option key={community.id} value={community.id}>
+                  c/{community.handle} - {community.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         {/* Title */}
         <Input

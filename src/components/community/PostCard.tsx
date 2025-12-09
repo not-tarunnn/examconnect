@@ -149,15 +149,26 @@ export default function PostCard({ post }: { post: PostProps }) {
                 }}
               />
               <Link
-  href={`/profile/${post.author.username}`}
-  className="hover:underline cursor-pointer"
->
-  {post.author.isGroup
-    ? `r/${post.author.username}`
-    : `u/${post.author.username}`}
-</Link>
+                href={`/profile/${post.author.username}`}
+                className="hover:underline cursor-pointer"
+              >
+                {post.author.isGroup
+                  ? `r/${post.author.username}`
+                  : `u/${post.author.username}`}
+              </Link>
               <span>•</span>
               <span>{timeAgo}</span>
+              {post.communityHandle && (
+                <>
+                  <span>•</span>
+                  <Link
+                    href={`/c/${post.communityHandle}`}
+                    className="text-blue-400 hover:underline cursor-pointer"
+                  >
+                    c/{post.communityHandle}
+                  </Link>
+                </>
+              )}
               {post.subreddit && (
                 <>
                   <span>•</span>
@@ -180,7 +191,7 @@ export default function PostCard({ post }: { post: PostProps }) {
           {/* Media */}
           <div className="mb-3">
             {post.type === "image" ? (
-              <div className="relative w-full max-h-[500px] rounded-lg overflow-hidden">
+              <div className="relative w-full max-h-[500px] rounded-lg overflow-hidden z-0">
                 <div
                   className="absolute inset-0 bg-cover bg-center blur-2xl scale-110"
                   style={{ backgroundImage: `url(${post.mediaUrl})` }}
@@ -188,7 +199,7 @@ export default function PostCard({ post }: { post: PostProps }) {
                 <img
                   src={post.mediaUrl}
                   alt="post"
-                  className="relative z-10 w-full max-h-[500px] object-contain"
+                  className="relative z-0 w-full max-h-[500px] object-contain"
                   loading="lazy"
                 />
               </div>

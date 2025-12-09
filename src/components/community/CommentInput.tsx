@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { db } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import useAuth from "@/hooks/useAuth";
 import AttachmentPicker from "@/components/message/AttachmentPicker";
+import { createComment, getPost } from "@/lib/communityService";
 
 type Props = {
   postId: string;
@@ -30,6 +31,7 @@ export default function CommentInput({ postId, parentCommentId = null, onSubmitt
     setSubmitting(true);
     try {
       if (parentCommentId) {
+        // For replies, use the old system for now (nested collection approach)
         await addDoc(collection(db, "comments", parentCommentId, "replies"), {
           userId: user.uid,
           text: content,
@@ -39,15 +41,32 @@ export default function CommentInput({ postId, parentCommentId = null, onSubmitt
           likesCount: 0,
         });
       } else {
-        await addDoc(collection(db, "comments"), {
-          postId,
-          userId: user.uid,
-          text: content,
-          attachments: attachments.length ? attachments : null,
-          createdAt: serverTimestamp(),
-          updatedAt: null,
-          likesCount: 0,
-        });
+        // For top-level comments, fetch post info and use new system
+        const post = await getPost(postId);
+
+        if (post) {
+          await createComment({
+            text: content,
+            author: {
+              id: user.uid,
+              username: user.displayName || user.email?.split("@")[0] || "Anonymous",
+            },
+            postId,
+            communityId: post.communityId,
+            reactions: { likes: 0, dislikes: 0 },
+          });
+        } else {
+          // Fallback for posts not in new system
+          await addDoc(collection(db, "comments"), {
+            postId,
+            userId: user.uid,
+            text: content,
+            attachments: attachments.length ? attachments : null,
+            createdAt: serverTimestamp(),
+            updatedAt: null,
+            likesCount: 0,
+          });
+        }
       }
       setText("");
       setAttachments([]);
