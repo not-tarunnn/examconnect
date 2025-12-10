@@ -231,7 +231,7 @@ export default function Sidebar() {
           <div className="flex items-center justify-between">
             {!collapsed && (
               <h1 className="text-xl font-semibold tracking-tight text-white">
-                <FaAtom />
+                  <img src="/icon_transparent.png" alt="ExamConnect" className="w-8 h-8" />
               </h1>
             )}
             <button onClick={toggle} className="py-2 px-2 hover:bg-[#2f2f2f] rounded-md transition text-white" title={collapsed ? "Expand" : "Collapse"}>
