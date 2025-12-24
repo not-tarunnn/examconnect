@@ -5,7 +5,7 @@ const blockedSites = [
 ];
 
 let isBlocking = false;
-let dashboardUrl = "https://examconnect.vercel.app/dashboard";
+let dashboardUrl = "https://examconnect.co.in/dashboard";
 
 // If running locally (for testing), override the URL
 if (location?.origin?.includes("localhost")) {
