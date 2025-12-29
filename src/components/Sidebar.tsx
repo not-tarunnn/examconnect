@@ -7,9 +7,10 @@ import useUserData from "@/hooks/useUserData";
 import { signOut } from "firebase/auth";
 import { auth, rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { FaUsers, FaCog, FaBars, FaUser, FaSignOutAlt, FaAtom, FaClipboardList } from "react-icons/fa";
+import { FaCog, FaBars, FaUser, FaSignOutAlt, } from "react-icons/fa";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { FaFacebookMessenger, FaMessage, FaPencil, FaPlantWilt, FaXmark } from "react-icons/fa6";
+import { FaFacebookMessenger, FaPencil,  FaRegCalendar, FaRegHeart, FaXmark, } from "react-icons/fa6";
+import { HiOutlineCog, HiOutlineUserGroup } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
 import LinkGoogleButton from "@/components/LinkGoogleButton.tsx";
 
@@ -54,9 +55,9 @@ export default function Sidebar() {
   }, [user?.uid]);
 
   const navItems = [
-    { label: "Study Planner", href: "/task", icon: <FaClipboardList /> },
-    { label: "Sleep ", href: "/sleep", icon: <FaPlantWilt /> },
-    { label: "Community", href: "/community", icon: <FaUsers /> },
+    { label: "Study Planner", href: "/task", icon: <FaRegCalendar /> },
+    { label: "Sleep ", href: "/sleep", icon: <FaRegHeart /> },
+    { label: "Community", href: "/community", icon: <HiOutlineUserGroup/> },
     { label: "Messages", href: "/message", icon: <FaFacebookMessenger />, mobileOnly: true },
   ];
 
@@ -176,7 +177,7 @@ export default function Sidebar() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5"
                 >
-                  <FaCog className="w-5 h-5" />
+                  <HiOutlineCog className="w-5 h-5" />
                   <span>Account Settings</span>
                 </Link>
 
@@ -284,7 +285,7 @@ export default function Sidebar() {
 
           <Link href="/accountsetting" className="flex items-center gap-3 px-1 py-2 min-w-15 rounded-lg transition text-white hover:bg-[#2f2f2f] text-md">
             <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
-              <FaCog />
+              <HiOutlineCog/>
             </div>
             <AnimatePresence mode="wait">
               {!collapsed && (

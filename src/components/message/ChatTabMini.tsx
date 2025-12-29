@@ -383,7 +383,24 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
   const [singleLineMap, setSingleLineMap] = useState<Record<number, boolean>>(
     {}
   );
+// Helper to detect if a message contains only emojis (and whitespace)
+  const isEmojiOnly = (text: string): boolean => {
+    if (!text || !text.trim()) return false;
+    // Remove all emojis and whitespace, if anything remains, it's not emoji-only
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji})/gu;
+    const withoutEmojis = text.replace(emojiRegex, "").trim();
+    return withoutEmojis.length === 0 && text.trim().length > 0;
+  };
 
+  // Get emoji font size based on count
+  const getEmojiFontSize = (text: string): string => {
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\p{Emoji})/gu;
+    const emojiMatches = text.match(emojiRegex) || [];
+    const count = emojiMatches.length;
+    if (count === 1) return "text-6xl";
+    if (count <= 3) return "text-5xl";
+    return "text-4xl";
+  };
   // Store refs without causing re-renders
   const measureTextEl = (index: number, el: HTMLElement | null) => {
     if (!el) return;
