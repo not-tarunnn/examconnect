@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "creator": {
       "@type": "Organization",
       "name": "ExamConnect Inc.",
-      "url": "https://examconnect.vercel.app"
+      "url": "https://examconnect.co.in"
     },
     "offers": {
       "@type": "Offer",
