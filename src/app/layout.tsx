@@ -12,7 +12,16 @@ export const metadata: Metadata = {
   title: 'ExamConnect',
   description:
     "ExamConnect helps students conquer exams with balance. Stay productive with study planner, focus mode, habit tracker, and track progress with powerful analytics.",
-  other: {
+  
+   icons: {
+    icon: [
+      { url: "/icon_transparent.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon_transparent.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: "/icon_transparent.png",
+  },
+  
+    other: {
     'google-adsense-account': 'ca-pub-6676209672905473',
   },
 };
