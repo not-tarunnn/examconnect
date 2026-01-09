@@ -8,6 +8,7 @@ export type Subject = 'Botany' | 'Chemistry' | 'Physics' | 'Zoology';
 export type QuestionType = 'MCQ' | 'Assertion-Reason' | 'Numerical' | 'Fill-in-the-blank';
 
 export interface Question {
+  imageUrl: any;
   id: string;
   text: string;
   options: MCQOption[];

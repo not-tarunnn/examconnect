@@ -23,7 +23,7 @@ import { Question, MCQOption, Subject, QuestionType } from '@/types/question';
 
 const storage = getStorage();
 
-export interface AdminQuestion extends Omit<Question, 'createdAt' | 'updatedAt'> {
+export interface AdminQuestion extends Omit<Question, 'createdAt' | 'updatedAt' | 'imageUrl'> {
   imageUrl?: string;
   imageFile?: File;
   createdAt?: Timestamp;

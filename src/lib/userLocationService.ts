@@ -309,22 +309,24 @@ export async function logUserLocationData(userId: string, useHighAccuracy: boole
     }
 
     const userRef = doc(db, 'users', userId);
-    const updateData: UserLocationUpdate = {
+    const updateData: Record<string, any> = {
       updatedAt: Timestamp.now(),
     };
 
     // Add IP address if available
     if (ipAddress) {
-      updateData.lastIp = {
-        ipAddress,
-        timestamp: Timestamp.now(),
-      };
+      updateData['lastIp.ipAddress'] = ipAddress;
+      updateData['lastIp.timestamp'] = Timestamp.now();
       console.log('[Location] IP will be logged:', ipAddress);
     }
 
     // Add location if available
     if (location) {
-      updateData.lastLocation = location;
+      updateData['lastLocation.latitude'] = location.latitude;
+      updateData['lastLocation.longitude'] = location.longitude;
+      updateData['lastLocation.accuracy'] = location.accuracy;
+      updateData['lastLocation.timestamp'] = location.timestamp;
+      updateData['lastLocation.confidence'] = location.confidence;
       console.log('[Location] Location will be logged (HIGH ACCURACY):', {
         latitude: location.latitude.toFixed(6),
         longitude: location.longitude.toFixed(6),

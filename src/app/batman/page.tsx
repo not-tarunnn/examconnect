@@ -8,11 +8,27 @@ import QuestionEditor from "@/components/admin/QuestionEditor";
 import QuestionsList from "@/components/admin/QuestionsList";
 import { Question } from "@/types/question";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Timestamp } from 'firebase/firestore';
+import { AdminQuestion } from '@/lib/adminQuestionService';
 
 export default function AdminBatmanPage() {
   const [activeTab, setActiveTab] = useState('add');
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+
+  const adminEditingQuestion: AdminQuestion | undefined = editingQuestion
+  ? {
+      ...editingQuestion,
+      createdAt: editingQuestion.createdAt
+        ? Timestamp.fromDate(editingQuestion.createdAt)
+        : undefined,
+      updatedAt: editingQuestion.updatedAt
+        ? Timestamp.fromDate(editingQuestion.updatedAt)
+        : undefined,
+    }
+  : undefined;
+
 
   const handleQuestionSuccess = (questionId: string) => {
     // Trigger refresh of questions list
@@ -64,12 +80,13 @@ export default function AdminBatmanPage() {
               </TabsList>
 
               {/* Add Question Tab */}
-              <TabsContent value="add" className="mt-6">
-                <QuestionEditor
-                  initialQuestion={editingQuestion || undefined}
-                  onSuccess={handleQuestionSuccess}
-                />
-              </TabsContent>
+<TabsContent value="add" className="mt-6">
+  <QuestionEditor
+    initialQuestion={adminEditingQuestion}
+    onSuccess={handleQuestionSuccess}
+  />
+</TabsContent>
+
 
               {/* Manage Questions Tab */}
               <TabsContent value="manage" className="mt-6">
