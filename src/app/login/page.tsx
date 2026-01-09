@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF, FaApple, FaUserAlt } from "react-icons/fa";
+import { Eye, EyeOff } from "lucide-react";
 import {
   auth,
   googleProvider,
@@ -15,16 +16,21 @@ import {
   signInWithEmailAndPassword,
   signInAnonymously,
 } from "firebase/auth";
+import { initializeLocationLogging } from "@/lib/userLocationService";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");  // <-- Add password state
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
   const loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const userId = result.user.uid;
+      // Log user location data in background
+      initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -34,7 +40,10 @@ export default function LoginPage() {
 
   const loginWithFacebook = async () => {
     try {
-      await signInWithPopup(auth, facebookProvider);
+      const result = await signInWithPopup(auth, facebookProvider);
+      const userId = result.user.uid;
+      // Log user location data in background
+      initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -44,7 +53,10 @@ export default function LoginPage() {
 
   const loginWithApple = async () => {
     try {
-      await signInWithPopup(auth, appleProvider);
+      const result = await signInWithPopup(auth, appleProvider);
+      const userId = result.user.uid;
+      // Log user location data in background
+      initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -54,7 +66,10 @@ export default function LoginPage() {
 
  const loginAnonymously = async () => {
   try {
-    await signInAnonymously(auth);
+    const result = await signInAnonymously(auth);
+    const userId = result.user.uid;
+    // Log user location data in background
+    initializeLocationLogging(userId).catch(console.error);
     router.push("/dashboard");
   } catch (err) {
     if (err instanceof Error) setError(err.message);
@@ -70,7 +85,10 @@ export default function LoginPage() {
         setError("Please enter both email and password.");
         return;
       }
-      await signInWithEmailAndPassword(auth, email, password);  // <-- use password state here
+      const result = await signInWithEmailAndPassword(auth, email, password);  // <-- use password state here
+      const userId = result.user.uid;
+      // Log user location data in background
+      initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -121,15 +139,25 @@ export default function LoginPage() {
   >
     Password
   </label>
-  <input
-    type="password"
-    id="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    placeholder="Enter your password"
-    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-    required
-  />
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      id="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      placeholder="Enter your password"
+      className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2 pr-10"
+      required
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-blue-600 transition-colors"
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  </div>
 
   <div className="mt-2 mb-6">
     <a href="/password/forgot" className="text-sm text-blue-600 hover:underline">

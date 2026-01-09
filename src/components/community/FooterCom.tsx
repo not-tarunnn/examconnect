@@ -7,7 +7,7 @@ import useAuth from "@/hooks/useAuth";
 import { rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import Dock from "@/components/Dock";
-import { FaRegHandshake, FaRegComments, FaRegSquarePlus,FaRegPaperPlane } from "react-icons/fa6";
+import { FaRegHandshake, FaRegComments, FaRegSquarePlus,FaRegPaperPlane, FaRegCommentDots } from "react-icons/fa6";
 
 export default function Footer() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,7 +50,7 @@ export default function Footer() {
     {
       icon: (
         <>
-          <FaRegComments size={20} />
+          <FaRegCommentDots size={20} />
           {hasUnread && (
             <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 border border-white/10 shadow-sm" />
           )}
@@ -66,8 +66,8 @@ export default function Footer() {
     },
     {
       icon: <FaRegHandshake size={20} />,
-      label: "Peers",
-      onClick: () => (window.location.href = "/peers"),
+      label: "Synergy",
+      onClick: () => (window.location.href = "/synergy"),
     },
     {
       icon: <FaRegPaperPlane size={20} />,

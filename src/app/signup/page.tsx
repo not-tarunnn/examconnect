@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF, FaApple, FaUserAlt } from "react-icons/fa";
+import { Eye, EyeOff } from "lucide-react";
 import {
   auth,
   googleProvider,
@@ -16,6 +17,7 @@ import {
   signInAnonymously ,
 } from "firebase/auth";
 import { FaPerson, FaUserSecret } from "react-icons/fa6";
+import { initializeLocationLogging } from "@/lib/userLocationService";
 
 
 const allowedEmailDomains = [
@@ -41,9 +43,10 @@ const isValidEmail = (email: string) => {
 
 export default function SignupPage() {
 
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -57,6 +60,8 @@ export default function SignupPage() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      // Log user location data in background
+      initializeLocationLogging(user.uid).catch(console.error);
       storeAndRedirect(user.email ?? "", user.photoURL ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google signup failed.");
@@ -67,6 +72,8 @@ export default function SignupPage() {
     try {
       const result = await signInWithPopup(auth, facebookProvider);
       const user = result.user;
+      // Log user location data in background
+      initializeLocationLogging(user.uid).catch(console.error);
       storeAndRedirect(user.email ?? "", user.photoURL ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Facebook signup failed.");
@@ -82,6 +89,9 @@ export default function SignupPage() {
     localStorage.setItem("signup_mode", "anonymous");
     localStorage.setItem("signup_uid", user.uid);
 
+    // Log user location data in background
+    initializeLocationLogging(user.uid).catch(console.error);
+
     // Redirect to the next onboarding step
     router.push("/signup/step1");
   } catch (err) {
@@ -93,6 +103,8 @@ export default function SignupPage() {
     try {
       const result = await signInWithPopup(auth, appleProvider);
       const user = result.user;
+      // Log user location data in background
+      initializeLocationLogging(user.uid).catch(console.error);
       storeAndRedirect(user.email ?? "", user.photoURL ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Apple signup failed.");
@@ -106,9 +118,12 @@ export default function SignupPage() {
       setError("Please use a valid email.");
       return;
     }
-    
+
     try {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    const userId = result.user.uid;
+    // Log user location data in background
+    initializeLocationLogging(userId).catch(console.error);
     localStorage.setItem("signup_email", email);
     localStorage.setItem("signup_password", password);
     router.push("/signup/step1");
@@ -177,15 +192,25 @@ export default function SignupPage() {
   >
     Password
   </label>
-  <input
-    type="password"
-    id="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    placeholder="Create a password"
-    className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
-    required
-  />
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      id="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      placeholder="Create a password"
+      className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2 pr-10"
+      required
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-blue-600 transition-colors"
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  </div>
 
   {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 

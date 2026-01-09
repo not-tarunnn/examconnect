@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { useStreakStore } from "@/store/useStreakStore";
 import { fetchStreakFromFirestore } from "@/lib/fetchStreak";
 import { FaFire } from "react-icons/fa";
+import { FaRegBell } from 'react-icons/fa6';
 
 const PomodoroModal = dynamic(() => import("@/components/PomodoroModal"), {
   ssr: false,
@@ -188,7 +189,7 @@ return (
         </div>
         {/* inbox icon */}
         <button className="hidden sm:block p-2 rounded-full hover:bg-white/20 transition">
-          <FaInbox size={20} />
+          <FaRegBell size={20} />
         </button>
 
         <span className=" hidden sm:block text-sm">Focus Mode</span>

@@ -4,9 +4,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { doc, onSnapshot, serverTimestamp, Timestamp, updateDoc } from "firebase/firestore";
-import { db, app, auth } from "@/lib/firebase";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { blobToBase64 } from "@/lib/cropImage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -207,27 +207,23 @@ export default function EditProfilePage() {
 
   const onCropComplete = (_: Area, pixels: Area) => setCroppedAreaPixels(pixels);
 
- const confirmCropAndUpload = async () => {
+const confirmCropAndUpload = async () => {
   if (!uid || !imageSrc || !croppedAreaPixels) return;
   setUploadingAvatar(true);
   try {
     const blob = await getCroppedBlob(imageSrc, croppedAreaPixels, localFile?.type || "image/jpeg");
-    const storage = getStorage(app);
-    const ext = (blob.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
-    const path = `avatars/${uid}/${Date.now()}.${ext}`;
-    const storageRef = ref(storage, path);
 
-    await uploadBytes(storageRef, blob);
-    const url = await getDownloadURL(storageRef);
+    // Convert blob to base64
+    const base64Image = await blobToBase64(blob);
 
-    // 🔥 Save to Firestore immediately
+    // Save base64 directly to Firestore
     await updateDoc(doc(db, "users", uid), {
-      profilePic: url,
+      profilePic: base64Image,
       updatedAt: serverTimestamp(),
     });
 
     // update local state so preview works too
-    setForm((f) => ({ ...f, profilePic: url }));
+    setForm((f) => ({ ...f, profilePic: base64Image }));
     setMessage("Profile photo updated.");
     closeCropper();
   } catch (e) {

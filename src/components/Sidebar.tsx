@@ -7,12 +7,13 @@ import useUserData from "@/hooks/useUserData";
 import { signOut } from "firebase/auth";
 import { auth, rtdb } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { FaCog, FaBars, FaUser, FaSignOutAlt, } from "react-icons/fa";
+import { FaBars, FaUser, FaSignOutAlt, } from "react-icons/fa";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { FaFacebookMessenger, FaPencil,  FaRegCalendar, FaRegHeart, FaXmark, } from "react-icons/fa6";
+import { FaPencil,  FaRegCalendar, FaRegCommentDots, FaRegHeart, FaRegUser, FaXmark, } from "react-icons/fa6";
 import { HiOutlineCog, HiOutlineUserGroup } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
 import LinkGoogleButton from "@/components/LinkGoogleButton.tsx";
+import { FiBookOpen } from "react-icons/fi";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -57,8 +58,9 @@ export default function Sidebar() {
   const navItems = [
     { label: "Study Planner", href: "/task", icon: <FaRegCalendar /> },
     { label: "Sleep ", href: "/sleep", icon: <FaRegHeart /> },
+    { label: "Questions", href: "/question", icon: <FiBookOpen/> },
     { label: "Community", href: "/community", icon: <HiOutlineUserGroup/> },
-    { label: "Messages", href: "/message", icon: <FaFacebookMessenger />, mobileOnly: true },
+    { label: "Messages", href: "/message", icon: <FaRegCommentDots />, mobileOnly: true },
   ];
 
   const handleLogout = async () => {

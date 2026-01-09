@@ -3,8 +3,12 @@
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
 import AutoNotification from "@/components/AutoNotification";
+import { useLocationTracking } from "@/hooks/useLocationTracking";
 
 export default function DashboardPage() {
+  // Track user location every 10 minutes while on dashboard
+  useLocationTracking(10 * 60 * 1000);
+
 return (
     <div className="flex min-h-screen">
       <AutoNotification />

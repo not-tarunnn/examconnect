@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";
 import { getAI } from "firebase/ai";
 import { getMessaging, isSupported } from "firebase/messaging";
 
@@ -37,6 +38,9 @@ const db = initializeFirestore(app, {
 
 // Realtime Database
 const rtdb = getDatabase(app);
+
+// Firebase Storage
+const storage = getStorage(app);
 
 // Firebase AI
 const ai = getAI(app);
@@ -82,11 +86,12 @@ export {
   auth,
   db,
   rtdb,
+  storage,
   ai,
   googleProvider,
   facebookProvider,
   twitterProvider,
   appleProvider,
-  messaging,    // <-- ✨ FIX: now exported
+  messaging,
   app,
 };
