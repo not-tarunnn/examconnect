@@ -12,7 +12,7 @@ import useAuth from './useAuth';
  * @param useHighAccuracy - Use high-accuracy multi-reading method (default: true)
  */
 export function useLocationTracking(
-  interval: number = 10 * 60 * 1000,
+  interval: number = 60 * 60 * 1000,
   useHighAccuracy: boolean = true
 ) {
   const { user } = useAuth();
