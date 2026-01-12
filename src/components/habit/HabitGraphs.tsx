@@ -46,7 +46,7 @@ export default function HabitGraphs() {
 
         // Calculate combined average (0 to 1 scale)
         const totalCompleted =
-          Object.values(chartEntry).reduce((sum, val) => {
+          Object.values(chartEntry).reduce((sum: number, val) => {
             if (typeof val === 'number') return sum + val
             return sum
           }, 0)
@@ -112,7 +112,6 @@ export default function HabitGraphs() {
               dot={false}
               isAnimationActive={false}
               name={habit.id}
-              isMonotone={false}
             />
           ))}
 

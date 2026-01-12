@@ -6,11 +6,13 @@ export default function HabitList() {
   const { habits, addHabit, removeHabit } = useHabitStore()
   const [newHabitName, setNewHabitName] = useState('')
   const [showInput, setShowInput] = useState(false)
+  const [newHabitColor, setNewHabitColor] = useState('#3b82f6')
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
-      addHabit(newHabitName)
+      addHabit(newHabitName, newHabitColor)
       setNewHabitName('')
+      setNewHabitColor('#3b82f6')
       setShowInput(false)
     }
   }
@@ -61,6 +63,7 @@ export default function HabitList() {
             onClick={() => {
               setShowInput(false)
               setNewHabitName('')
+              setNewHabitColor('#3b82f6')
             }}
             className="p-1.5 rounded bg-red-600 hover:bg-red-700 text-white transition-colors flex-shrink-0"
             title="Cancel"
