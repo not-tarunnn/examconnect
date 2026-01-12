@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import MapCanvasFlow from "@/components/task/MapCanvasFlow";
 import DifficultyRatingModal from "@/components/task/DifficultyRatingModal";
+import HabitPlanner from "@/components/habit/HabitPlanner";
 
 export default function TasksPage() {
   
@@ -363,8 +364,8 @@ const handleDifficultyModalClose = () => {
           )}
 
           {activeTab === "habits" && (
-  <div className="flex-1 flex items-center justify-center text-muted-foreground text-xl font-medium">
-    🚧 Habits feature is under development.
+  <div className="flex-1 relative overflow-hidden">
+    <HabitPlanner />
   </div>
 )}
 

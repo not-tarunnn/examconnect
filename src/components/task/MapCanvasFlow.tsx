@@ -121,13 +121,15 @@ useEffect(() => {
 subjects.forEach((subject, index) => {
   const id = `subject-${index}`;
 
-  // If the index exists in prevMap, reuse it, otherwise fallback
+  // Try to get persisted position from Zustand store, fallback to prevMap, then default
+  const savedPosition = getPosition(id);
   const prevNode = prevMap.get(id);
+  const position = savedPosition ?? prevNode?.position ?? { x: 300 + index * 300, y: 100 };
 
   newNodes.push({
     id,
     type: 'subjectNode',
-    position: prevNode?.position ?? { x: 300 + index * 300, y: 100 },
+    position,
     data: { subject },
     draggable: true,
   });
@@ -147,15 +149,18 @@ subjects.forEach((subject, index) => {
       const subtaskHeight = 28;
       const dynamicHeight = baseHeight + task.subTasks.length * subtaskHeight;
 
+      // Try to get persisted position from Zustand store, fallback to prevMap, then default
+      const savedPosition = getPosition(id);
+      const prevNode = prevMap.get(id);
+      const position = savedPosition ?? prevNode?.position ?? {
+        x: 100 + (firstSubjectIndex >= 0 ? firstSubjectIndex * 300 : 0),
+        y: 300 + cumulativeYOffset,
+      };
+
       newNodes.push({
         id,
         type: 'taskNode',
-        position:
-          prevMap.get(id)?.position ??
-          {
-            x: 100 + (firstSubjectIndex >= 0 ? firstSubjectIndex * 300 : 0),
-            y: 300 + cumulativeYOffset,
-          },
+        position,
         data: {
           task,
           onToggleSubtask: handleToggleSubtask,
