@@ -8,6 +8,8 @@ import { useStreakStore } from "@/store/useStreakStore";
 import { fetchStreakFromFirestore } from "@/lib/fetchStreak";
 import { FaFire } from "react-icons/fa";
 import { FaRegBell } from 'react-icons/fa6';
+import BirthdayWish from './BirthdayCountdown';
+import BirthdayCountdown from './BirthdayCountdown';
 
 const PomodoroModal = dynamic(() => import("@/components/PomodoroModal"), {
   ssr: false,
@@ -179,7 +181,9 @@ return (
   EXAM CONNECT
 </h1>
 
-
+ {/* Center: Birthday Message */}
+  <BirthdayCountdown targetDate="2026-02-06T00:00:00" />
+  
       {/* Right: Focus Mode Toggle */}
       <div className="flex items-center gap-3 ">
 
