@@ -180,9 +180,6 @@ return (
 >
   EXAM CONNECT
 </h1>
-
- {/* Center: Birthday Message */}
-  <BirthdayCountdown targetDate="2026-02-06T00:00:00" />
   
       {/* Right: Focus Mode Toggle */}
       <div className="flex items-center gap-3 ">
