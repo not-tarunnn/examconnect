@@ -31,7 +31,7 @@ export default function LoginPage() {
       const userId = result.user.uid;
       // Log user location data in background
       initializeLocationLogging(userId).catch(console.error);
-      router.push("/dashboard");
+      router.push("/task");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
       else setError("Google login failed.");

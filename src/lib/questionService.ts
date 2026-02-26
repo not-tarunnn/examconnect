@@ -26,6 +26,10 @@ export async function fetchAllQuestions(
       constraints.push(where('subject', '==', filters.subject));
     }
 
+    if (filters?.book) {
+      constraints.push(where('book', '==', filters.book));
+    }
+
     if (filters?.chapter) {
       constraints.push(where('chapter', '==', filters.chapter));
     }
@@ -97,6 +101,10 @@ export async function fetchQuestions(
     // Add filters if provided
     if (filters?.subject) {
       constraints.push(where('subject', '==', filters.subject));
+    }
+
+    if (filters?.book) {
+      constraints.push(where('book', '==', filters.book));
     }
 
     if (filters?.chapter) {

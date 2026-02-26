@@ -6,6 +6,7 @@ export interface MCQOption {
 
 export type Subject = 'Botany' | 'Chemistry' | 'Physics' | 'Zoology';
 export type QuestionType = 'MCQ' | 'Assertion-Reason' | 'Numerical' | 'Fill-in-the-blank';
+export type Book = 'NCERT' | 'Reference' | 'Sample Papers' | 'Practice Papers';
 
 export interface Question {
   imageUrl: any;
@@ -15,6 +16,7 @@ export interface Question {
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   subject: Subject;
+  book?: Book;
   chapter: string;
   topic: string;
   questionType: QuestionType;
@@ -52,6 +54,7 @@ export interface QuestionQueryResult {
 
 export interface FilterOptions {
   subject?: Subject;
+  book?: Book;
   chapter?: string;
   topic?: string;
   difficulty?: string;

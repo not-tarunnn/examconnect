@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  addQuestion, 
-  updateQuestion, 
+import {
+  addQuestion,
+  updateQuestion,
   getChaptersForSubject,
   getTopicsForChapter,
   validateQuestion,
   uploadQuestionImage,
   AdminQuestion
 } from '@/lib/adminQuestionService';
-import { MCQOption, Subject, QuestionType } from '@/types/question';
+import { MCQOption, Subject, QuestionType, Book } from '@/types/question';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2, Plus, Upload, X } from 'lucide-react';
 
 const SUBJECTS: Subject[] = ['Botany', 'Chemistry', 'Physics', 'Zoology'];
+const BOOKS: Book[] = ['NCERT', 'Reference', 'Sample Papers', 'Practice Papers'];
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const QUESTION_TYPES: QuestionType[] = ['MCQ', 'Assertion-Reason', 'Numerical', 'Fill-in-the-blank'];
 
@@ -40,6 +41,7 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
       difficulty: 'medium',
       category: '',
       subject: 'Chemistry',
+      book: undefined,
       chapter: '',
       topic: '',
       questionType: 'MCQ',
@@ -172,6 +174,7 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
           difficulty: 'medium',
           category: '',
           subject: 'Chemistry',
+          book: undefined,
           chapter: '',
           topic: '',
           questionType: 'MCQ',
@@ -263,8 +266,8 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
           )}
         </div>
 
-        {/* Subject, Chapter, Topic, Difficulty */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Subject, Book, Chapter, Topic, Difficulty */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-2">Subject *</label>
             <select
@@ -274,6 +277,20 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
             >
               {SUBJECTS.map(subject => (
                 <option key={subject} value={subject}>{subject}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">Book</label>
+            <select
+              value={formData.book || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, book: e.target.value as Book | undefined }))}
+              className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select Book</option>
+              {BOOKS.map(book => (
+                <option key={book} value={book}>{book}</option>
               ))}
             </select>
           </div>

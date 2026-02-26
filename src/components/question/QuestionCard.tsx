@@ -51,34 +51,14 @@ export default function QuestionCard({
             <div className={`px-3 py-1 rounded-full border text-xs font-medium ${difficultyInfo.color} ${difficultyInfo.textColor}`}>
               {difficultyInfo.label}
             </div>
+            <div className="px-3 py-1 rounded-full border text-xs font-medium bg-yellow-500/20 border-yellow-500/50 text-yellow-400">
+              {correctnessPercentage}%
+            </div>
           </div>
           <h3 className="text-lg font-semibold text-white leading-relaxed">
             {question.text}
           </h3>
         </div>
-      </div>
-
-      {/* Correctness Indicator */}
-      <div className="mb-6 p-3 rounded-lg bg-white/5 border border-white/10">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-white/70">Correctness Level</span>
-          <span className="text-sm font-semibold text-white/90">{correctnessPercentage}%</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${correctnessPercentage}%` }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400"
-          />
-        </div>
-        <p className="text-xs text-white/60 mt-2">
-          {correctnessPercentage < 30
-            ? 'Tricky question - Most users get this wrong'
-            : correctnessPercentage < 70
-            ? 'Moderate - Some users find this challenging'
-            : 'Most users answer this correctly'}
-        </p>
       </div>
 
       {/* Options */}

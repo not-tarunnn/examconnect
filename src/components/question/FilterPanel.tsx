@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { QuestionType, Subject, FilterOptions } from '@/types/question';
-import { Filter, ChevronDown, Bookmark, AlertCircle, BookOpen, Zap, HelpCircle } from 'lucide-react';
+import { QuestionType, Subject, Book, FilterOptions } from '@/types/question';
+import { Filter, ChevronDown, Bookmark, AlertCircle, BookOpen, Zap, HelpCircle, Library } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DropdownFilter from './DropdownFilter';
 
@@ -12,10 +12,12 @@ interface FilterPanelProps {
 }
 
 const SUBJECTS: Subject[] = ['Botany', 'Chemistry', 'Physics', 'Zoology'];
+const BOOKS: Book[] = ['NCERT', 'Reference', 'Sample Papers', 'Practice Papers'];
 const QUESTION_TYPES: QuestionType[] = ['MCQ', 'Assertion-Reason', 'Numerical', 'Fill-in-the-blank'];
 const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard'];
 
 const subjectOptions = SUBJECTS.map((s) => ({ value: s, label: s }));
+const bookOptions = BOOKS.map((b) => ({ value: b, label: b }));
 const difficultyOptions = DIFFICULTY_LEVELS.map((d) => ({
   value: d,
   label: d.charAt(0).toUpperCase() + d.slice(1),
@@ -43,14 +45,23 @@ export default function FilterPanel({ filters, onFiltersChange }: FilterPanelPro
   return (
     <div className="space-y-4">
       {/* Primary Filters - One Line Dropdowns */}
-      <div className="grid grid-cols-3 gap-3">
-        <DropdownFilter
+      <div className="grid grid-cols-4 gap-3">
+        {/* <DropdownFilter
           label="Subject"
           options={subjectOptions}
           selectedValue={filters.subject}
           onSelect={(value) => updateFilter('subject', value)}
           icon={<BookOpen size={18} strokeWidth={1.5} />}
           placeholder="All Subjects"
+        /> */}
+
+        <DropdownFilter
+          label="Books"
+          options={bookOptions}
+          selectedValue={filters.book}
+          onSelect={(value) => updateFilter('book', value)}
+          icon={<Library size={18} strokeWidth={1.5} />}
+          placeholder="All Books"
         />
 
         <DropdownFilter
@@ -221,6 +232,7 @@ export default function FilterPanel({ filters, onFiltersChange }: FilterPanelPro
               onClick={() =>
                 onFiltersChange({
                   subject: filters.subject,
+                  book: filters.book,
                   chapter: filters.chapter,
                   topic: filters.topic,
                 })

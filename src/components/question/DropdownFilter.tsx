@@ -28,14 +28,14 @@ export default function DropdownFilter({
   placeholder = 'Select...',
 }: DropdownFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -48,7 +48,7 @@ export default function DropdownFilter({
   const selectedLabel = options.find((opt) => opt.value === selectedValue)?.label || placeholder;
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
+    <div className="relative" ref={containerRef}>
       {/* Dropdown Button */}
       <motion.button
         whileHover={{ scale: 1.02 }}

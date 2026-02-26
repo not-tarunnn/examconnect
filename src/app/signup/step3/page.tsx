@@ -107,7 +107,7 @@ export default function Step3() {
       setAcceptedAt(new Date().toISOString());
 
       // Navigate to dashboard
-      router.push("/dashboard");
+      router.push("/task");
     } catch (e) {
       console.error(e);
       alert("Could not complete onboarding. Try again.");
