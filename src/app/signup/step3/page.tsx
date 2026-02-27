@@ -30,7 +30,7 @@ export default function Step3() {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [acceptedAt, setAcceptedAt] = useState<string | null>(null);
-
+  const [wantsNewsletter, setWantsNewsletter] = useState(false);
   useEffect(() => {
     // Optionally hydrate acceptance state from server/user metadata
     // TODO: fetch user acceptance record from Firestore: users/{uid}/agreements/userAgreement
@@ -68,6 +68,11 @@ export default function Step3() {
       return alert("Please check the box to agree to the User Agreement.");
     }
 
+    const handleSubmit = () => {
+  console.log("Form submitted:", { agreed, wantsNewsletter });
+  // Send to backend or Brevo API if wantsNewsletter is true
+};
+
     setSaving(true);
     try {
       const userObj = auth.currentUser;
@@ -102,6 +107,12 @@ export default function Step3() {
         version: VERSION,
         acceptedAt: serverTimestamp(),
       });
+     
+      // Record newsletter preference (optional)
+await setDoc(doc(db, "users", uid, "agreements", "newsletterOptIn"), {
+  optedIn: wantsNewsletter || false, // boolean
+  updatedAt: serverTimestamp(),
+});
 
       // set local acceptedAt for UI
       setAcceptedAt(new Date().toISOString());
@@ -341,69 +352,83 @@ export default function Step3() {
 
                 {/* Agreement checkbox (uses onboarding store) */}
 <div className="flex flex-col gap-4">
-  {/* Checkbox + Agreement text */}
-  <div className="min-w-0">
-    <div className="flex items-center gap-3">
-      <Checkbox
-        id="agree"
-        checked={!!agreed}
-        onCheckedChange={(v) => setField("agreed", Boolean(v))}
-      />
-      <label htmlFor="agree" className="text-sm">
-        I have read and agree to the Exam Connect User Agreement.
-      </label>
-    </div>
-
-    <p className="mt-2 text-xs text-muted-foreground max-w-md leading-relaxed">
-      By continuing you accept our{" "}
-      <a
-        href="/terms-and-conditions"
-        target="_blank"
-        rel="noreferrer noopener"
-        className="text-primary hover:underline"
-      >
-        Terms &amp; Conditions
-      </a>
-      ,{" "}
-      <a
-        href="/privacy-policy"
-        target="_blank"
-        rel="noreferrer noopener"
-        className="text-primary hover:underline"
-      >
-        Privacy Policy
-      </a>{" "}
-      and{" "}
-      <a
-        href="/cookie-policy"
-        target="_blank"
-        rel="noreferrer noopener"
-        className="text-primary hover:underline"
-      >
-        Cookie Policy
-      </a>
-      .
-    </p>
+{/* Checkbox + Agreement text */}
+<div className="min-w-0 space-y-4">
+  
+  {/* Newsletter Opt-in Checkbox */}
+  <div className="flex items-center gap-3 mt-2">
+    <Checkbox
+  id="newsletter"
+  checked={!!wantsNewsletter}
+  onCheckedChange={(v) => setWantsNewsletter(Boolean(v))}
+/>
+    <label htmlFor="newsletter" className="text-sm">
+      I want to receive updates, newsletters, and offers via email.
+    </label>
+  </div>
+</div>
+{/* Terms Agreement Checkbox */}
+  <div className="flex items-center gap-3">
+    <Checkbox
+      id="agree"
+      checked={!!agreed}
+      onCheckedChange={(v) => setField("agreed", Boolean(v))}
+    />
+    <label htmlFor="agree" className="text-sm">
+      I have read and agree to the Exam Connect User Agreement.
+    </label>
   </div>
 
-  {/* Action buttons below */}
-  <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-    <Button
-      variant="outline"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="w-full sm:w-auto"
+  <p className="-mt-3 text-xs text-muted-foreground max-w-md leading-tight">
+    By continuing you accept our{" "}
+    <a
+      href="/terms-and-conditions"
+      target="_blank"
+      rel="noreferrer noopener"
+      className="text-primary hover:underline"
     >
-      Read from top
-    </Button>
+      Terms &amp; Conditions
+    </a>
+    ,{" "}
+    <a
+      href="/privacy-policy"
+      target="_blank"
+      rel="noreferrer noopener"
+      className="text-primary hover:underline"
+    >
+      Privacy Policy
+    </a>{" "}
+    and{" "}
+    <a
+      href="/cookie-policy"
+      target="_blank"
+      rel="noreferrer noopener"
+      className="text-primary hover:underline"
+    >
+      Cookie Policy
+    </a>
+    .
+  </p>
 
-    <Button
-      onClick={handleSubmit}
-      disabled={!agreed || saving}
-      className="w-full sm:w-auto rounded-full px-6"
-    >
-      {saving ? "Saving…" : "Accept & Continue"}
-    </Button>
-  </div>
+
+{/* Action buttons below */}
+<div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+  <Button
+    variant="outline"
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    className="w-full sm:w-auto"
+  >
+    Read from top
+  </Button>
+
+  <Button
+    onClick={handleSubmit}
+    disabled={!agreed || saving} // only require terms agreement, not newsletter
+    className="w-full sm:w-auto rounded-full px-6"
+  >
+    {saving ? "Saving…" : "Accept & Continue"}
+  </Button>
+</div>
 </div>
 
               </CardContent>
