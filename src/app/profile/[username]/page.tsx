@@ -15,7 +15,7 @@ import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 import FollowButton from "@/components/profile/FollowButton";
 import FollowersFollowing from "@/components/profile/FollowersFollowing";
-import BannerEditModal from "@/components/profile/BannerEditModal";
+
 
 // --------------------
 // Types
