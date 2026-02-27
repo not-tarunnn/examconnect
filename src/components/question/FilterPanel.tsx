@@ -45,15 +45,15 @@ export default function FilterPanel({ filters, onFiltersChange }: FilterPanelPro
   return (
     <div className="space-y-4">
       {/* Primary Filters - One Line Dropdowns */}
-      <div className="grid grid-cols-4 gap-3">
-        {/* <DropdownFilter
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+        <DropdownFilter
           label="Subject"
           options={subjectOptions}
           selectedValue={filters.subject}
           onSelect={(value) => updateFilter('subject', value)}
           icon={<BookOpen size={18} strokeWidth={1.5} />}
           placeholder="All Subjects"
-        /> */}
+        />
 
         <DropdownFilter
           label="Books"

@@ -41,7 +41,7 @@ const rankStyles = (i: number) => {
 
 export default function LeaderBoard() {
   return (
-    <div className="flex min-h-screen bg-[#181818]">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <div className="fixed sm:relative top-0 left-0 h-screen z-50">
         <Sidebar />

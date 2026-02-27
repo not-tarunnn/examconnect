@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { doc, onSnapshot, Timestamp, getDoc } from "firebase/firestore";
+import { doc, onSnapshot, Timestamp, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; // ← adjust if your firebase client lives elsewhere
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 import FollowButton from "@/components/profile/FollowButton";
 import FollowersFollowing from "@/components/profile/FollowersFollowing";
+import BannerEditModal from "@/components/profile/BannerEditModal";
 
 // --------------------
 // Types
@@ -33,6 +34,7 @@ type UserProfile = {
   targetExam?: string;
   classLevel?: string;
   profilePic?: string;
+  bannerImage?: string; // banner image stored as base64
   createdAt?: Timestamp | string | Date;
   agreed?: boolean;
   verified?: boolean;
@@ -113,6 +115,7 @@ export default function UsernameProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
 
   // 1) Resolve slug → uid (usernames/{slug})
   useEffect(() => {
@@ -181,13 +184,33 @@ export default function UsernameProfilePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Cover */}
-      <div className="relative">
+      <div className="relative group">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="h-40 w-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700"
-        />
+          className="h-40 w-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 overflow-hidden"
+        >
+          {profile?.bannerImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt="banner"
+              src={profile.bannerImage}
+              className="w-full h-full object-cover"
+            />
+          ) : null}
+        </motion.div>
+
+        {/* Edit Banner Button - Only show for own profile */}
+        {authUser?.uid === uid && (
+          <button
+            onClick={() => setBannerModalOpen(true)}
+            className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <Edit2 className="h-4 w-4" />
+            Edit Banner
+          </button>
+        )}
 
         {/* Header Row */}
         <div className="max-w-5xl mx-auto px-4 -mt-6" >

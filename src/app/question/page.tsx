@@ -11,6 +11,7 @@ import { Subject, FilterOptions } from "@/types/question";
 
 export default function QuestionPage() {
   const [filters, setFilters] = useState<FilterOptions>({});
+  const [scrolled, setScrolled] = useState(false);
 
   const handleSubjectSelect = (subject: Subject | undefined) => {
     setFilters((prev) => ({
@@ -37,57 +38,74 @@ export default function QuestionPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-[#202020]">
       <AutoNotification />
-      {/* Sidebar */}
-      <div className="fixed sm:relative top-0 left-0 h-screen z-50">
+
+      {/* Sidebar (Part of Flex Layout — Not Fixed) */}
+      <div className="h-screen flex-shrink-0">
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col bg-[#202020] flex-1 transition-all duration-300 pl-0 sm:pl-0">
-        <div className="sticky top-0 z-10">
+      <div className="flex flex-col flex-1 min-w-0">
+        
+        {/* Header */}
+        <div className="sticky top-0 z-40">
           <HeaderApp />
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-6">
-            {/* Page Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Practice Questions</h1>
-              <p className="text-white/60">Master your skills with our curated MCQ questions</p>
+        {/* Content Layout */}
+        <div className="flex flex-1 overflow-hidden gap-6">
+          
+          {/* Left Subject Tree */}
+          <div className="hidden lg:flex lg:w-1/4 flex-col border-r border-white/10 p-6 min-w-0">
+            <div className="glassmorphism-dark rounded-lg border border-white/10 p-4  overflow-y-auto">
+              <SubjectChapterTree
+                selectedSubject={filters.subject}
+                selectedChapter={filters.chapter}
+                selectedTopic={filters.topic}
+                onSubjectSelect={handleSubjectSelect}
+                onChapterSelect={handleChapterSelect}
+                onTopicSelect={handleTopicSelect}
+              />
+            </div>
+          </div>
+
+          {/* Right Scrollable Section */}
+          <div
+            className="flex-1 flex flex-col overflow-y-auto pr-6 min-w-0"
+            onScroll={(e) => {
+              const scrollTop = e.currentTarget.scrollTop;
+              setScrolled(scrollTop > 40);
+            }}
+          >
+            {/* Title (Fades Smoothly) */}
+            <div
+              className={`pt-6 transition-all duration-300 ${
+                scrolled
+                  ? "opacity-0 -translate-y-4 h-0 overflow-hidden"
+                  : "opacity-100 mb-6"
+              }`}
+            >
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Practice Questions
+              </h1>
+              <p className="text-white/60">
+                Master your skills with our curated MCQ questions
+              </p>
             </div>
 
-            {/* Two-Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Left Sidebar - Subject/Chapter Tree */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24">
-                  <div className="glassmorphism-dark rounded-lg border border-white/10 p-4">
-                    <SubjectChapterTree
-                      selectedSubject={filters.subject}
-                      selectedChapter={filters.chapter}
-                      selectedTopic={filters.topic}
-                      onSubjectSelect={handleSubjectSelect}
-                      onChapterSelect={handleChapterSelect}
-                      onTopicSelect={handleTopicSelect}
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Sticky Filter Panel */}
+            <div className="sticky top-0 z-30 bg-[#202020]/80 backdrop-blur-md py-4">
+              <FilterPanel
+                filters={filters}
+                onFiltersChange={setFilters}
+              />
+            </div>
 
-              {/* Right Content - Filters and Questions */}
-              <div className="lg:col-span-3 space-y-6">
-                {/* Filter Panel */}
-                <FilterPanel
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                />
-
-                {/* Question Area */}
-                <QuestionArea filters={filters} />
-              </div>
+            {/* Questions */}
+            <div className="flex-1 pb-10">
+              <QuestionArea filters={filters} />
             </div>
           </div>
         </div>

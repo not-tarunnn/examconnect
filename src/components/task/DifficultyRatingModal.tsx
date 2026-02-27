@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { db } from "@/lib/firebase"; // Assuming you're using Firebase for Firestore
-import { doc, updateDoc } from "firebase/firestore"; // Firebase Firestore methods
+import { doc, updateDoc, getDoc } from "firebase/firestore"; // Firebase Firestore methods
 import SM18 from "@/lib/sm18";  // Import your SM18 algorithm
 
 type DifficultyRatingModalProps = {
@@ -46,11 +46,24 @@ export default function DifficultyRatingModal({
       try {
         await SM18.applySM18Algorithm(taskId, rating);
 
-        // Update Firestore task with the new rating and priority
+        // Fetch the current task to get its subtasks
         const taskRef = doc(db, "tasks", taskId);
+        const taskSnapshot = await getDoc(taskRef);
+        const currentTask = taskSnapshot.data();
+
+        // Reset all subtasks to done: false
+        const resetSubTasks = currentTask?.subTasks?.map((subTask: any) => ({
+          ...subTask,
+          done: false,
+        })) || [];
+
+        // Update Firestore task with the new rating, priority, and reset subtasks
         await updateDoc(taskRef, {
           rating: rating,
           priority: priority,
+          subTasks: resetSubTasks,
+          completed: false,
+          status: "pending",
         });
 
         // Call the parent onSubmitAction function
