@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Menu } from "lucide-react";
 import { FaInbox } from 'react-icons/fa';
 import dynamic from "next/dynamic";
 import { useStreakStore } from "@/store/useStreakStore";
@@ -10,6 +10,7 @@ import { FaFire } from "react-icons/fa";
 import { FaRegBell } from 'react-icons/fa6';
 import BirthdayWish from './BirthdayCountdown';
 import BirthdayCountdown from './BirthdayCountdown';
+import { useSidebarStore } from "@/store/useSidebarStore";
 
 const PomodoroModal = dynamic(() => import("@/components/PomodoroModal"), {
   ssr: false,
@@ -165,21 +166,33 @@ const { streak, longestStreak } = useStreakStore();
     }, 1000);
   };
 
-return (
+const { toggle } = useSidebarStore();
+
+  return (
   <div id="focus-root">
-    <header className="w-full px-6 py-4 bg-transparent text-white flex items-center justify-between">
-      {/* Left: Logo */}
-      <h1
-  className="
-    text-xl               /* smaller text for mobile */
-    md:text-xl            /* normal size for desktop */
-    font-bold tracking-tight
-    ml-12 md:ml-0  
-    py-2 md:py-0        /* move right on mobile, normal on desktop */
-  "
->
-  EXAM CONNECT
-</h1>
+    <header className="w-full px-3 sm:px-6 py-4 bg-transparent text-white flex items-center justify-between">
+      {/* Left: Hamburger Menu (Mobile) + Logo */}
+      <div className="flex items-center gap-3 sm:gap-0">
+        {/* Hamburger Menu - Visible on mobile only */}
+        <button
+          onClick={toggle}
+          className="sm:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+          title="Toggle menu"
+        >
+          <Menu size={24} />
+        </button>
+
+        {/* Logo */}
+        <h1
+          className="
+            text-lg sm:text-xl
+            font-bold tracking-tight
+            py-2
+          "
+        >
+          EXAM CONNECT
+        </h1>
+      </div>
   
       {/* Right: Focus Mode Toggle */}
       <div className="flex items-center gap-3 ">
@@ -222,7 +235,7 @@ return (
         </div>
 
         {/* Three Dots Icon */}
-        <button className="hidden sm:block p-2 rounded-full hover:bg-white/20 transition">
+        <button className=" sm:block p-2 rounded-full hover:bg-white/20 transition">
           <MoreHorizontal size={20} />
         </button>
       </div>

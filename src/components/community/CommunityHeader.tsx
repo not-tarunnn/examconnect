@@ -59,7 +59,7 @@ export default function CommunityHeader({
   return (
     <div className="bg-[#1a1a1a] border-b border-[#343536]">
       {/* Banner */}
-      <div className="relative h-48 bg-gradient-to-r from-blue-600 to-purple-600 overflow-hidden">
+      <div className="relative h-32 sm:h-48 bg-gradient-to-r from-blue-600 to-purple-600 overflow-hidden">
         {community.bannerUrl ? (
           <img
             src={community.bannerUrl}
@@ -72,67 +72,67 @@ export default function CommunityHeader({
       </div>
 
       {/* Content Container */}
-      <div className="px-4 md:px-6 py-6">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-          {/* Icon and Info */}
-          <div className="flex flex-col gap-4 flex-1">
-            {/* Icon */}
-            <div className="flex items-end gap-4">
-              <div className="relative -mt-20">
+      <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+        <div className="flex flex-col gap-4">
+          {/* Icon and Info - Horizontal on mobile, stacked on sm+ */}
+          <div className="flex flex-col sm:flex-col gap-3 sm:gap-4 flex-1">
+            {/* Icon and Title */}
+            <div className="flex items-end gap-3 sm:gap-4">
+              <div className="relative -mt-16 sm:-mt-20 flex-shrink-0">
                 {community.iconUrl ? (
                   <img
                     src={community.iconUrl}
                     alt={community.name}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-[#1a1a1a]"
+                    className="w-16 sm:w-24 h-16 sm:h-24 rounded-full object-cover border-4 border-[#1a1a1a]"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold border-4 border-[#1a1a1a]">
+                  <div className="w-16 sm:w-24 h-16 sm:h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl sm:text-3xl font-bold border-4 border-[#1a1a1a]">
                     {community.name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
 
               {/* Name and Handle */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-white">{community.name}</h1>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h1 className="text-lg sm:text-3xl font-bold text-white truncate">{community.name}</h1>
                   {community.isVerified && (
-                    <Shield size={24} className="text-blue-400" />
+                    <Shield size={16} className="sm:w-6 sm:h-6 text-blue-400 flex-shrink-0" />
                   )}
                 </div>
-                <p className="text-gray-400 text-lg">c/{community.handle}</p>
+                <p className="text-gray-400 text-sm sm:text-lg">c/{community.handle}</p>
               </div>
             </div>
 
             {/* Description */}
-            <p className="text-gray-300 text-base max-w-2xl">{community.description}</p>
+            <p className="text-gray-300 text-xs sm:text-base max-w-2xl line-clamp-2 sm:line-clamp-none">{community.description}</p>
 
             {/* Meta Stats */}
-            <div className="flex flex-wrap gap-6 text-sm">
+            <div className="flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm">
               <div className="flex items-center gap-2 text-gray-400">
-                <Users size={18} className="text-blue-400" />
+                <Users size={14} className="sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
                 <span className="text-white font-medium">{community.memberCount.toLocaleString()}</span>
-                <span>members</span>
+                <span className="hidden xs:inline">members</span>
               </div>
               <div className="flex items-center gap-2 text-gray-400">
-                <MessageSquare size={18} className="text-green-400" />
+                <MessageSquare size={14} className="sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
                 <span className="text-white font-medium">{community.category}</span>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2 md:min-w-fit">
+          {/* Action Buttons - Full width on mobile, inline on sm+ */}
+          <div className="flex flex-col sm:flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
             {isCreator && (
-              <button className="flex items-center justify-center gap-2 px-6 py-2 rounded-lg bg-[#2a2a2a] text-white hover:bg-[#343536] transition-colors">
-                <Settings size={18} />
+              <button className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 rounded-lg bg-[#2a2a2a] text-white hover:bg-[#343536] transition-colors text-sm sm:text-base">
+                <Settings size={16} className="sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Settings</span>
               </button>
             )}
             <button
               onClick={isMember ? handleLeave : handleJoin}
               disabled={loading}
-              className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
                 isMember
                   ? "bg-[#2a2a2a] text-white hover:bg-red-600/20 hover:text-red-400"
                   : "bg-blue-600 text-white hover:bg-blue-700"
@@ -145,10 +145,10 @@ export default function CommunityHeader({
       </div>
 
       {/* Tabs */}
-      <div className="border-t border-[#343536] px-4 md:px-6 flex gap-8">
+      <div className="border-t border-[#343536] px-2 sm:px-4 md:px-6 flex gap-4 sm:gap-8 overflow-x-auto">
         <button
           onClick={() => setActiveTab("posts")}
-          className={`py-4 font-medium border-b-2 transition-colors ${
+          className={`py-3 sm:py-4 font-medium border-b-2 transition-colors text-sm sm:text-base whitespace-nowrap ${
             activeTab === "posts"
               ? "border-blue-500 text-white"
               : "border-transparent text-gray-400 hover:text-white"
@@ -158,7 +158,7 @@ export default function CommunityHeader({
         </button>
         <button
           onClick={() => setActiveTab("rules")}
-          className={`py-4 font-medium border-b-2 transition-colors ${
+          className={`py-3 sm:py-4 font-medium border-b-2 transition-colors text-sm sm:text-base whitespace-nowrap ${
             activeTab === "rules"
               ? "border-blue-500 text-white"
               : "border-transparent text-gray-400 hover:text-white"
@@ -168,7 +168,7 @@ export default function CommunityHeader({
         </button>
         <button
           onClick={() => setActiveTab("about")}
-          className={`py-4 font-medium border-b-2 transition-colors ${
+          className={`py-3 sm:py-4 font-medium border-b-2 transition-colors text-sm sm:text-base whitespace-nowrap ${
             activeTab === "about"
               ? "border-blue-500 text-white"
               : "border-transparent text-gray-400 hover:text-white"

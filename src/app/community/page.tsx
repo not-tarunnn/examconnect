@@ -15,15 +15,15 @@ export default function CommunityPage() {
 
   return (
     <div className="flex min-h-screen bg-[#161616] text-white">
-      {/* Sidebar */}
-      <div className="fixed top-0 left-0 h-screen z-30">
+      {/* Sidebar - Overlay on mobile, fixed on desktop */}
+      <div className="sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:z-30">
         <Sidebar />
       </div>
 
       {/* Main Content */}
       <div
-        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
-          collapsed ? "ml-20" : "ml-64"
+        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 w-full sm:w-auto ${
+          collapsed ? "sm:ml-20" : "sm:ml-64"
         }`}
       >
         {/* Header */}
@@ -32,16 +32,16 @@ export default function CommunityPage() {
         </div>
 
         {/* Content Layout */}
-        <main className="flex flex-1 pt-4 px-4 gap-6 max-w-7xl mx-auto w-full">
+        <main className="flex flex-col lg:flex-row flex-1 pt-2 sm:pt-4 px-2 sm:px-4 gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
           {/* Smaller left spacer */}
           <div className="hidden lg:block w-8 flex-shrink-0"></div>
 
-          {/* Post Feed - Bigger and closer to sidebar */}
-          <div className="flex-1 min-w-0 max-w-3xl">
+          {/* Post Feed - Full width on mobile, max-w-3xl on desktop */}
+          <div className="flex-1 min-w-0 w-full lg:max-w-3xl">
             <PostFeed />
           </div>
 
-          {/* Popular Communities - Closer to posts */}
+          {/* Popular Communities - Hidden on small screens, sidebar on large */}
           <div className="hidden lg:block w-72 flex-shrink-0">
             <div className="translate-x-32 fixed">
               {/* Insert ad

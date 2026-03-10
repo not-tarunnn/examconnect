@@ -77,17 +77,17 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full mt-auto bg-transparent sticky bottom-3 z-10">
-      <div className="px-6 py-2 max-w-7xl mr-[16rem] mx-auto">
+    <footer className="w-full mt-auto bg-transparent sticky bottom-2 sm:bottom-3 z-10">
+      <div className="px-2 sm:px-4 md:px-6 py-1 sm:py-2 max-w-7xl mr-0 sm:mr-[16rem] mx-auto">
         {/* Dock replacing buttons */}
         <div className="relative w-full flex justify-center">
           <Dock
             items={dockItems}
-            baseItemSize={40}
-            magnification={70}
-            distance={150}
-            dockHeight={100}
-            panelHeight={60}
+            baseItemSize={36}
+            magnification={60}
+            distance={130}
+            dockHeight={80}
+            panelHeight={50}
             spring={{ mass: 0.2, stiffness: 200, damping: 15 }}
             className="mx-auto"
           />

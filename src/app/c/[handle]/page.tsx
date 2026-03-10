@@ -114,19 +114,19 @@ export default function CommunityPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#161616] text-white">
-        <div className="fixed top-0 left-0 h-screen z-30">
+        <div className="sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:z-30">
           <Sidebar />
         </div>
         <div
-          className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
-            collapsed ? "ml-20" : "ml-64"
+          className={`flex flex-col flex-1 min-h-screen transition-all duration-300 w-full sm:w-auto ${
+            collapsed ? "sm:ml-20" : "sm:ml-64"
           }`}
         >
           <div className="sticky top-0 z-20">
             <HeaderApp />
           </div>
-          <div className="flex flex-1 items-center justify-center">
-            <div className="text-gray-400">Loading community...</div>
+          <div className="flex flex-1 items-center justify-center px-4">
+            <div className="text-gray-400 text-sm sm:text-base">Loading community...</div>
           </div>
         </div>
       </div>
@@ -136,23 +136,23 @@ export default function CommunityPage() {
   if (!community) {
     return (
       <div className="flex min-h-screen bg-[#161616] text-white">
-        <div className="fixed top-0 left-0 h-screen z-30">
+        <div className="sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:z-30">
           <Sidebar />
         </div>
         <div
-          className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
-            collapsed ? "ml-20" : "ml-64"
+          className={`flex flex-col flex-1 min-h-screen transition-all duration-300 w-full sm:w-auto ${
+            collapsed ? "sm:ml-20" : "sm:ml-64"
           }`}
         >
           <div className="sticky top-0 z-20">
             <HeaderApp />
           </div>
-          <div className="flex flex-1 items-center justify-center">
+          <div className="flex flex-1 items-center justify-center px-4">
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                 Community Not Found
               </h1>
-              <p className="text-gray-400">
+              <p className="text-gray-400 text-sm sm:text-base">
                 The community c/{handle} does not exist.
               </p>
             </div>
@@ -164,15 +164,15 @@ export default function CommunityPage() {
 
   return (
     <div className="flex min-h-screen bg-[#161616] text-white">
-      {/* Sidebar */}
-      <div className="fixed top-0 left-0 h-screen z-30">
+      {/* Sidebar - Overlay on mobile, fixed on desktop */}
+      <div className="sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:z-30">
         <Sidebar />
       </div>
 
       {/* Main Content */}
       <div
-        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
-          collapsed ? "ml-20" : "ml-64"
+        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 w-full sm:w-auto ${
+          collapsed ? "sm:ml-20" : "sm:ml-64"
         }`}
       >
         {/* Header */}
@@ -188,13 +188,13 @@ export default function CommunityPage() {
         />
 
         {/* Content Layout */}
-        <main className="flex flex-1 gap-6 max-w-7xl mx-auto w-full px-4 py-6">
+        <main className="flex flex-col lg:flex-row flex-1 gap-4 sm:gap-6 max-w-7xl mx-auto w-full px-2 sm:px-4 py-4 sm:py-6">
           {/* Posts Feed */}
-          <div className="flex-1 min-w-0 max-w-3xl">
+          <div className="flex-1 min-w-0 w-full lg:max-w-3xl">
             {isMember && (
               <Button
                 onClick={() => setShowCreatePost(true)}
-                className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white py-6"
+                className="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white py-4 sm:py-6 text-sm sm:text-base"
               >
                 <Edit2 size={18} className="mr-2" />
                 Create Post
@@ -204,7 +204,7 @@ export default function CommunityPage() {
             {posts.length > 0 ? (
               <div className="space-y-2">
                 {posts.map((post) => (
- <PostCard
+<PostCard
   post={{
     ...post,
     communityHandle: handle,
@@ -216,21 +216,21 @@ export default function CommunityPage() {
                   <button
                     onClick={handleLoadMore}
                     disabled={postsLoading}
-                    className="w-full py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                    className="w-full py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 text-sm sm:text-base"
                   >
                     {postsLoading ? "Loading..." : "Load More"}
                   </button>
                 )}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-400 mb-4">
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-400 mb-4 text-sm sm:text-base">
                   No posts yet in this community
                 </p>
                 {isMember && (
                   <Button
                     onClick={() => setShowCreatePost(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
                   >
                     Create the first post
                   </Button>
@@ -239,7 +239,7 @@ export default function CommunityPage() {
             )}
           </div>
 
-          {/* Sidebar - Community Info */}
+          {/* Sidebar - Community Info - Hidden on mobile */}
           <div className="hidden lg:block w-72 flex-shrink-0">
             <CommunityInfo community={community} isMember={isMember} />
           </div>

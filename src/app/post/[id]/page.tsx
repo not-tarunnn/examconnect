@@ -61,32 +61,32 @@ export default function PostPage() {
 
   return (
     <div className="flex min-h-screen bg-[#181818] text-white">
-      {/* Sidebar */}
-      <div className="fixed top-0 left-0 h-screen z-30">
+      {/* Sidebar - Overlay on mobile, fixed on desktop */}
+      <div className="sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:z-30">
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
+      <div className={`flex flex-col flex-1 min-h-screen transition-all duration-300 w-full sm:w-auto ${collapsed ? "sm:ml-20" : "sm:ml-64"}`}>
         <div className="sticky top-0 z-20">
           <HeaderApp />
         </div>
 
-        <main className="flex flex-1 pt-4 px-4 gap-16 max-w-7xl mx-auto w-full">
+        <main className="flex flex-col lg:flex-row flex-1 pt-2 sm:pt-4 px-2 sm:px-4 gap-4 sm:gap-16 max-w-7xl mx-auto w-full">
           {/* Post Content */}
-          <div className="flex-1 min-w-0 max-w-3xl">
+          <div className="flex-1 min-w-0 w-full lg:max-w-3xl">
             <button
               onClick={() => router.back()}
-              className="flex items-center space-x-2 text-gray-400 hover:text-white mb-4 transition-colors"
+              className="flex items-center gap-2 text-gray-400 hover:text-white mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
             >
-              <ArrowLeft size={20} />
-              <span>Back to community</span>
+              <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+              <span>Back</span>
             </button>
 
             <div className="bg-transparent rounded-lg mb-6">
-              <div className="flex">
-                {/* Vote Section */}
-                <div className="flex flex-col items-center bg-transparent p-3 rounded-l-lg">
+              <div className="flex flex-col sm:flex-row">
+                {/* Vote Section - Hidden on mobile, shown on sm+ */}
+                <div className="hidden sm:flex sm:flex-col items-center bg-transparent p-3 rounded-l-lg">
                   <ChevronUp size={24} />
                   <span className="text-sm font-medium text-white px-1 py-2">
                     {post.reactions?.likes - post.reactions?.dislikes || 0}
@@ -95,52 +95,97 @@ export default function PostPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 p-4">
-                  <div className="flex items-center text-sm text-gray-400 mb-3">
-                    <img
-                      src={post.author?.profilePic || "/api/placeholder/32/32"}
-                      alt={post.author?.username || "Anonymous"}
-                      className="w-6 h-6 rounded-full bg-gray-600 mr-2"
-                    />
-                    <span className="hover:underline cursor-pointer mr-2">
-                      r/{post.subreddit || "community"}
-                    </span>
-                    <span>Posted by</span>
-                    <span className="hover:underline cursor-pointer mx-1">
-                      u/{post.author?.username || "Anonymous"}
-                    </span>
-                    <span>{timeAgo}</span>
+                <div className="flex-1 p-2 sm:p-4">
+                  {/* Header Info */}
+                  <div className="flex flex-col gap-2 text-xs sm:text-sm text-gray-400 mb-3">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={post.author?.profilePic || "/api/placeholder/32/32"}
+                        alt={post.author?.username || "Anonymous"}
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-600"
+                      />
+                      <span className="hover:underline cursor-pointer">
+                        {post.subreddit || "community"}
+                      </span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="hidden sm:inline">Posted by</span>
+                      <span className="hover:underline cursor-pointer">
+                        {post.author?.username || "Anonymous"}
+                      </span>
+                    </div>
+                    <span className="sm:hidden text-xs">{timeAgo}</span>
+                    <span className="hidden sm:inline">{timeAgo}</span>
                   </div>
 
-                  <h1 className="text-white text-xl font-medium mb-4">{post.title}</h1>
-                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">{post.description}</p>
+                  {/* Title */}
+                  <h1 className="text-white text-lg sm:text-2xl font-medium mb-2 sm:mb-4">{post.title}</h1>
 
+                  {/* Description */}
+                  <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 leading-relaxed">{post.description}</p>
+
+                  {/* Media */}
                   {post.mediaUrl && (
                     <img
                       src={post.mediaUrl}
                       alt="post"
-                      className="w-full max-h-[600px] object-contain rounded-lg bg-[#0b0c0d]"
+                      className="w-full max-h-[300px] sm:max-h-[600px] object-contain rounded-lg bg-[#0b0c0d] mb-3 sm:mb-4"
                     />
                   )}
 
-                  <div className="flex items-center space-x-6 text-gray-400 text-sm border-b border-[#343536] pb-4">
-                    <MessageCircle size={18} />
-                    <span>Comments</span>
-                    <Share2 size={18} />
-                    <Bookmark size={18} />
-                    <Eye size={18} />
-                    <span>{post.views?.toLocaleString()}</span>
+                  {/* Mobile Vote Buttons */}
+                  <div className="flex sm:hidden items-center justify-between gap-2 text-gray-400 text-xs mb-3 pb-3 border-b border-[#343536]">
+                    <div className="flex items-center gap-2">
+                      <button className="flex items-center gap-1 hover:bg-[#343536] px-2 py-1 rounded transition-colors">
+                        <ChevronUp size={16} />
+                        <span>{post.reactions?.likes || 0}</span>
+                      </button>
+                      <button className="flex items-center gap-1 hover:bg-[#343536] px-2 py-1 rounded transition-colors">
+                        <ChevronDown size={16} />
+                        <span>{post.reactions?.dislikes || 0}</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors">
+                        <MessageCircle size={14} />
+                      </button>
+                      <button className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors">
+                        <Share2 size={14} />
+                      </button>
+                      <button className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors">
+                        <Bookmark size={14} />
+                      </button>
+                      <div className="flex items-center gap-1">
+                        <Eye size={14} />
+                        <span>{post.views?.toLocaleString() || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop Action Bar */}
+                  <div className="hidden sm:flex items-center gap-6 text-gray-400 text-sm border-b border-[#343536] pb-4 mb-4">
+                    <button className="flex items-center gap-2 hover:text-white transition-colors">
+                      <MessageCircle size={18} />
+                      <span>Comments</span>
+                    </button>
+                    <button className="flex items-center gap-2 hover:text-white transition-colors">
+                      <Share2 size={18} />
+                    </button>
+                    <button className="flex items-center gap-2 hover:text-white transition-colors">
+                      <Bookmark size={18} />
+                    </button>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Eye size={18} />
+                      <span>{post.views?.toLocaleString()}</span>
+                    </div>
                   </div>
 
                   {/* Comment box */}
                   <div className="mt-4">
-                   
                     <CommentInput postId={post.id} />
                   </div>
 
                   {/* Thread */}
                   <div className="mt-6">
-                  
                     <CommentThread postId={post.id} />
                   </div>
                 </div>
@@ -148,7 +193,8 @@ export default function PostPage() {
             </div>
           </div>
 
-          <div className="hidden lg:block w-72 flex-shrink-0 ml-auto">
+          {/* Suggested Groups - Hidden on mobile */}
+          <div className="hidden lg:block w-72 flex-shrink-0">
             <SuggestedGroups />
           </div>
         </main>

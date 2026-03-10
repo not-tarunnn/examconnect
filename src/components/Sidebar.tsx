@@ -23,7 +23,8 @@ export default function Sidebar() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [hasUnread, setHasUnread] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  // For mobile, we'll show the drawer when the hamburger is clicked
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -72,6 +73,18 @@ export default function Sidebar() {
     }
   };
 
+  // On mobile, sync the drawer visibility with the sidebar store toggle
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // md breakpoint
+    if (isMobile) {
+      // On mobile, when collapsed changes, open/close the drawer
+      // We'll show the drawer when the hamburger is clicked (collapsed toggles)
+      if (collapsed) {
+        setShowMobileDrawer(true);
+      }
+    }
+  }, [collapsed]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -89,22 +102,12 @@ export default function Sidebar() {
 
   return (
     <>
-  {/* Small floating hamburger button for mobile */}
-<div className="md:hidden fixed top-4 left-4 z-[1000]">
-  <button
-    aria-label="Open menu"
-    onClick={() => setMobileOpen(true)}
-    className="p-3 rounded-xl bg-[#202020]/90 backdrop-blur-md border border-white/10 shadow-lg text-white hover:bg-white/10 active:scale-95 transition"
-    title="Open menu"
-  >
-    <FaBars className="text-lg" />
-  </button>
-</div>
+  {/* Small floating hamburger button - hidden since it's in the header */}
 
 
       {/* Mobile overlay drawer - bottom sheet, doesn't cover the header area */}
       <AnimatePresence>
-        {mobileOpen && (
+        {showMobileDrawer && (
           <motion.div
             key="overlay"
             initial={{ opacity: 0 }}
@@ -113,7 +116,10 @@ export default function Sidebar() {
             className="fixed left-0 right-0 bottom-0 top-0 z-[2000] bg-black/60 backdrop-blur-md"
             role="dialog"
             aria-modal="true"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              setShowMobileDrawer(false);
+              toggle(); // Reset the collapsed state
+            }}
           >
             <motion.div
               initial={{ y: "100%", opacity: 1 }}
@@ -143,7 +149,10 @@ export default function Sidebar() {
                       <div className="text-xs text-gray-300">{userData?.username ? `@${userData.username}` : (user?.email || "")}</div>
                     </div>
                   </div>
-                  <button aria-label="Close menu" onClick={() => setMobileOpen(false)} className="p-2 rounded-md hover:bg-white/5">
+                  <button aria-label="Close menu" onClick={() => {
+                    setShowMobileDrawer(false);
+                    toggle();
+                  }} className="p-2 rounded-md hover:bg-white/5">
                     <FaXmark />
                   </button>
                 </div>
@@ -154,7 +163,10 @@ export default function Sidebar() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      setShowMobileDrawer(false);
+                      toggle();
+                    }}
                     className="relative flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5"
                   >
                     <div className="w-6 h-6 flex items-center justify-center">{item.icon}</div>
@@ -176,7 +188,10 @@ export default function Sidebar() {
 
                 <Link
                   href="/accountsetting"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setShowMobileDrawer(false);
+                    toggle();
+                  }}
                   className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5"
                 >
                   <HiOutlineCog className="w-5 h-5" />
@@ -186,7 +201,10 @@ export default function Sidebar() {
                 {user && userData && (
                   <Link
                     href={`/profile/${userData.username ?? ""}`}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      setShowMobileDrawer(false);
+                      toggle();
+                    }}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5"
                   >
                     <FaUser />
@@ -196,7 +214,10 @@ export default function Sidebar() {
 
                 <Link
                   href="/release-notes"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setShowMobileDrawer(false);
+                    toggle();
+                  }}
                   className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5"
                 >
                   <FaPencil />
@@ -207,7 +228,8 @@ export default function Sidebar() {
                   <div className="px-2 py-2">
                     <button
                       onClick={() => {
-                        setMobileOpen(false);
+                        setShowMobileDrawer(false);
+                        toggle();
                         handleLogout();
                       }}
                       className="w-full flex items-center gap-2 px-3 py-3 rounded-lg hover:bg-red-600/80 bg-white/5"

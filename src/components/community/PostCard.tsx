@@ -117,9 +117,9 @@ export default function PostCard({ post }: { post: PostProps }) {
 
   return (
     <div className="bg-transparent rounded-lg mb-4 hover:bg-[#202020] transition-colors duration-200 group">
-      <div className="flex">
-        {/* Vote Buttons */}
-        <div className="flex flex-col items-center bg-transparent p-2 rounded-l-lg">
+      <div className="flex flex-col sm:flex-row">
+        {/* Vote Buttons - Horizontal on mobile, vertical on sm+ */}
+        <div className="hidden sm:flex sm:flex-col items-center bg-transparent p-2 rounded-l-lg">
           <button
             className="p-1 hover:bg-[#343536] rounded text-gray-400 hover:text-green-500 transition-colors"
             onClick={() => handleVote("like")}
@@ -137,7 +137,7 @@ export default function PostCard({ post }: { post: PostProps }) {
         </div>
 
         {/* Post Content */}
-        <div className="flex-1 p-3">
+        <div className="flex-1 p-2 sm:p-3">
           {/* Header */}
           <div className="flex items-center text-xs text-gray-400 mb-2">
             <div className="flex items-center space-x-2">
@@ -211,30 +211,78 @@ export default function PostCard({ post }: { post: PostProps }) {
             )}
           </div>
 
-          {/* Action Bar */}
-          <div className="flex items-center space-x-4 text-gray-400 text-sm">
+          {/* Mobile: Action Bar - All buttons in one line */}
+          <div className="sm:hidden flex items-center justify-between gap-2 text-gray-400 text-xs">
+            {/* Left: Like/Dislike Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                className="flex items-center gap-1 hover:bg-[#343536] px-2 py-1 rounded transition-colors"
+                onClick={() => handleVote("like")}
+              >
+                <ChevronUp size={14} />
+                <span>{likes}</span>
+              </button>
+              <button
+                className="flex items-center gap-1 hover:bg-[#343536] px-2 py-1 rounded transition-colors"
+                onClick={() => handleVote("dislike")}
+              >
+                <ChevronDown size={14} />
+                <span>{dislikes}</span>
+              </button>
+            </div>
+
+            {/* Right: Comments, Share, Save, Views */}
+            <div className="flex items-center gap-2">
+              <button
+                className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors whitespace-nowrap"
+                onClick={() => router.push(`/post/${post.id}`)}
+              >
+                <MessageCircle size={14} />
+                <span>{post.commentsCount}</span>
+              </button>
+              <button
+                className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors whitespace-nowrap"
+                onClick={() => setShowShare(true)}
+              >
+                <Share2 size={14} />
+              </button>
+              <button className="flex items-center gap-1 hover:bg-[#272729] px-2 py-1 rounded transition-colors whitespace-nowrap">
+                <Bookmark size={14} />
+              </button>
+              {post.views && (
+                <div className="flex items-center gap-1 whitespace-nowrap">
+                  <Eye size={14} />
+                  <span>{post.views.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop: Action Bar */}
+          <div className="hidden sm:flex items-center space-x-2 sm:space-x-4 text-gray-400 text-xs sm:text-sm overflow-x-auto">
             <button
-              className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors"
+              className="flex items-center space-x-1 hover:bg-[#272729] p-1 sm:p-2 rounded transition-colors whitespace-nowrap"
               onClick={() => router.push(`/post/${post.id}`)}
             >
-              <MessageCircle size={16} />
-              <span>{post.commentsCount} Comments</span>
+              <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">{post.commentsCount} Comments</span>
+              <span className="xs:hidden">{post.commentsCount}</span>
             </button>
             <button
-  className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors"
-  onClick={() => setShowShare(true)}
->
-  <Share2 size={16} />
-  <span>Share</span>
-</button>
-            
-            <button className="flex items-center space-x-1 hover:bg-[#272729] p-2 rounded transition-colors">
-              <Bookmark size={16} />
-              <span>Save</span>
+              className="flex items-center space-x-1 hover:bg-[#272729] p-1 sm:p-2 rounded transition-colors whitespace-nowrap"
+              onClick={() => setShowShare(true)}
+            >
+              <Share2 size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Share</span>
+            </button>
+
+            <button className="flex items-center space-x-1 hover:bg-[#272729] p-1 sm:p-2 rounded transition-colors whitespace-nowrap">
+              <Bookmark size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Save</span>
             </button>
             {post.views && (
-              <div className="flex items-center space-x-1 ml-auto">
-                <Eye size={16} />
+              <div className="flex items-center space-x-1 ml-auto whitespace-nowrap">
+                <Eye size={14} className="sm:w-4 sm:h-4" />
                 <span>{post.views.toLocaleString()}</span>
               </div>
             )}
