@@ -21,10 +21,18 @@ export default function AdminBatmanPage() {
   ? {
       ...editingQuestion,
       createdAt: editingQuestion.createdAt
-        ? Timestamp.fromDate(editingQuestion.createdAt)
+        ? editingQuestion.createdAt instanceof Timestamp
+          ? editingQuestion.createdAt
+          : editingQuestion.createdAt instanceof Date
+          ? Timestamp.fromDate(editingQuestion.createdAt)
+          : undefined
         : undefined,
       updatedAt: editingQuestion.updatedAt
-        ? Timestamp.fromDate(editingQuestion.updatedAt)
+        ? editingQuestion.updatedAt instanceof Timestamp
+          ? editingQuestion.updatedAt
+          : editingQuestion.updatedAt instanceof Date
+          ? Timestamp.fromDate(editingQuestion.updatedAt)
+          : undefined
         : undefined,
     }
   : undefined;

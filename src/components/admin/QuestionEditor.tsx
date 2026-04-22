@@ -58,6 +58,7 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isNewChapter, setIsNewChapter] = useState(false);
 
   // Load chapters when subject changes
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
           setChapters(chaptersData);
           setFormData(prev => ({ ...prev, chapter: '', topic: '' }));
           setTopics([]);
+          setIsNewChapter(false);
         } catch (error) {
           console.error('Error loading chapters:', error);
         }
@@ -91,6 +93,14 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
     };
     loadTopics();
   }, [formData.chapter]);
+
+  // Check if current chapter is in the pre-existing chapters list
+  useEffect(() => {
+    if (formData.chapter && chapters.length > 0) {
+      const chapterExists = chapters.includes(formData.chapter);
+      setIsNewChapter(!chapterExists);
+    }
+  }, [chapters, formData.chapter]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -182,6 +192,7 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
           tags: [],
         });
         setImagePreview(null);
+        setIsNewChapter(false);
         onSuccess?.(questionId);
       }
 
@@ -297,24 +308,33 @@ export default function QuestionEditor({ initialQuestion, onSuccess }: QuestionE
 
           <div>
             <label className="block text-sm font-semibold mb-2">Chapter *</label>
-            {chapters.length > 0 ? (
-              <select
-                value={formData.chapter}
-                onChange={(e) => setFormData(prev => ({ ...prev, chapter: e.target.value }))}
-                className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
-              >
-                <option value="">Select Chapter</option>
-                {chapters.map(chapter => (
-                  <option key={chapter} value={chapter}>{chapter}</option>
-                ))}
-              </select>
-            ) : (
+            <select
+              value={isNewChapter ? 'OTHER' : formData.chapter}
+              onChange={(e) => {
+                if (e.target.value === 'OTHER') {
+                  setIsNewChapter(true);
+                  setFormData(prev => ({ ...prev, chapter: '' }));
+                } else {
+                  setIsNewChapter(false);
+                  setFormData(prev => ({ ...prev, chapter: e.target.value }));
+                }
+              }}
+              className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select Chapter</option>
+              {chapters.map(chapter => (
+                <option key={chapter} value={chapter}>{chapter}</option>
+              ))}
+              <option value="OTHER">Other (Add New)</option>
+            </select>
+            {isNewChapter && (
               <input
                 type="text"
                 value={formData.chapter}
                 onChange={(e) => setFormData(prev => ({ ...prev, chapter: e.target.value }))}
-                placeholder="Enter new chapter..."
-                className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                placeholder="Enter new chapter name..."
+                className="w-full px-3 py-2 mt-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                autoFocus
               />
             )}
           </div>
