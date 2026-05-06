@@ -474,6 +474,31 @@ const inputRef = useRef<HTMLInputElement | null>(null);
     await set(ref(rtdb, `${path}/participants/${user.uid}`), true).catch(() => {});
     if (!isGroup && selectedUser?.uid) {
       await set(ref(rtdb, `${path}/participants/${selectedUser.uid}`), true).catch(() => {});
+      // Send FCM notification for 1:1 DM
+      fetch("/api/send-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderId: user.uid,
+          receiverId: selectedUser.uid,
+          messageText: input.trim() || "[Image]",
+        }),
+      }).catch((err) => console.error("Failed to send notification:", err));
+    } else if (isGroup && groupId) {
+      // Send FCM notifications to all group members except sender
+      for (const memberId of memberUids) {
+        if (memberId !== user.uid) {
+          fetch("/api/send-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              senderId: user.uid,
+              receiverId: memberId,
+              messageText: input.trim() || "[Image]",
+            }),
+          }).catch((err) => console.error("Failed to send notification:", err));
+        }
+      }
     }
   } catch (_) {}
 

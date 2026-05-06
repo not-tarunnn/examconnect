@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { messaging, } from "@/lib/firebase";
-import { getToken } from "firebase/messaging";
+import { messaging } from "@/lib/firebase";
+import { getToken, onMessage } from "firebase/messaging";
 import { db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import useAuth from "@/hooks/useAuth";
@@ -48,6 +48,36 @@ export default function AutoNotification() {
 
     return removeListeners;
   }, [user]);
+
+  // Handle foreground notifications
+  useEffect(() => {
+    const unsubscribe = onMessage(messaging, (payload) => {
+      const { notification, data } = payload;
+
+      if (notification) {
+        // Show notification in the foreground
+        const notificationOptions: NotificationOptions = {
+          body: notification.body || "",
+          icon: "/favicon.ico",
+          badge: "/favicon.ico",
+          tag: "message-notification",
+          data: data || {},
+        };
+
+        // Create notification
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(notification.title || "New Message", notificationOptions);
+          });
+        } else {
+          // Fallback: create a browser notification if service worker not available
+          new Notification(notification.title || "New Message", notificationOptions);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return null;
 }
