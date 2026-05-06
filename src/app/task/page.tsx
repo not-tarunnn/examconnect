@@ -255,7 +255,7 @@ const handleDifficultyModalClose = () => {
   </div>
 </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[calc(100vh-370px)] sm:max-h-[calc(100vh-210px)]">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[calc(100vh-210px)] sm:max-h-[calc(100vh-210px)]">
   {filteredTasks.map((task) => {
     const completedCount = task.subTasks.filter((s) => s.done).length;
     const totalCount = task.subTasks.length;
