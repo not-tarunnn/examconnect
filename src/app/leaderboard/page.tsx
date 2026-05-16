@@ -68,7 +68,8 @@ export default function LeaderBoard() {
 
         const userMap = new Map<string, { fullName: string }>();
         usersSnapshot.docs.forEach((doc) => {
-          userMap.set(doc.id, { fullName: doc.data().fullName || "Unknown User" });
+          const fullName = doc.data().fullName || `Guest${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+          userMap.set(doc.id, { fullName });
         });
 
         const logsPerUser = new Map<string, PomodoroLog[]>();
