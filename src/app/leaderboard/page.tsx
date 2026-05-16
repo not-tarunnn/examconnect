@@ -4,14 +4,20 @@ import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection, query, getDocs, where, Timestamp } from "firebase/firestore";
 
 interface LeaderboardUser {
-  id: string;
+  uid: string;
   fullName: string;
   streak: number;
-  week: number;
-  today: number;
+  weekHours: number;
+  todayHours: number;
+}
+
+interface PomodoroLog {
+  uid: string;
+  duration: number;
+  createdAt: Timestamp;
 }
 
 const rankStyles = (i: number) => {
@@ -43,23 +49,93 @@ export default function LeaderBoard() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const q = query(
-          collection(db, "users"),
-          orderBy("streak", "desc"),
-          limit(50)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => {
-          const docData = doc.data();
-          return {
-            id: doc.id,
-            fullName: docData.fullName || "Unknown User",
-            streak: docData.streak || 0,
-            week: docData.weekStats || 0,
-            today: docData.todayStats || 0,
-          };
+        const logsSnapshot = await getDocs(collection(db, "pomodoroLogs"));
+        const usersSnapshot = await getDocs(collection(db, "users"));
+
+        const userMap = new Map<string, { fullName: string }>();
+        usersSnapshot.docs.forEach((doc) => {
+          userMap.set(doc.id, { fullName: doc.data().fullName || "Unknown User" });
         });
-        setUsers(data);
+
+        const logsPerUser = new Map<string, PomodoroLog[]>();
+        logsSnapshot.docs.forEach((doc) => {
+          const log = doc.data() as PomodoroLog;
+          if (!logsPerUser.has(log.uid)) {
+            logsPerUser.set(log.uid, []);
+          }
+          logsPerUser.get(log.uid)!.push(log);
+        });
+
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diffToMonday = (now.getDay() === 0 ? 7 : now.getDay()) - 1;
+        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+
+        const leaderboard: LeaderboardUser[] = [];
+
+        logsPerUser.forEach((logs, uid) => {
+          const userData = userMap.get(uid);
+          if (!userData) return;
+
+          const sortedLogs = logs.sort((a, b) => {
+            const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
+            const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          let todayHours = 0;
+          let weekHours = 0;
+          let streak = 0;
+          const uniqueDays = new Set<string>();
+
+          for (const log of sortedLogs) {
+            const logDate = log.createdAt instanceof Timestamp ? log.createdAt.toDate() : new Date(log.createdAt);
+            const durationHours = (log.duration || 0) / 3600;
+
+            if (logDate >= startOfToday) {
+              todayHours += durationHours;
+            }
+            if (logDate >= startOfWeek) {
+              weekHours += durationHours;
+            }
+
+            const dateKey = logDate.toISOString().split("T")[0];
+            uniqueDays.add(dateKey);
+          }
+
+          const sortedDays = Array.from(uniqueDays)
+            .sort()
+            .reverse();
+
+          if (sortedDays.length > 0) {
+            let currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            for (const dayStr of sortedDays) {
+              const logDate = new Date(dayStr);
+              const diffDays = Math.floor((currentDate.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24));
+
+              if (diffDays === 0) {
+                streak++;
+                currentDate.setDate(currentDate.getDate() - 1);
+              } else if (diffDays === 1) {
+                streak++;
+                currentDate = logDate;
+              } else {
+                break;
+              }
+            }
+          }
+
+          leaderboard.push({
+            uid,
+            fullName: userData.fullName,
+            streak,
+            weekHours: Math.round(weekHours * 10) / 10,
+            todayHours: Math.round(todayHours * 10) / 10,
+          });
+        });
+
+        leaderboard.sort((a, b) => b.streak - a.streak);
+        setUsers(leaderboard);
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
       } finally {
@@ -117,7 +193,7 @@ export default function LeaderBoard() {
                     const style = rankStyles(idx);
                     return (
                       <li
-                        key={u.id}
+                        key={u.uid}
                         className={`flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-[#252525] transition-colors ${style.glow}`}
                       >
                         {/* Left: rank + name */}
@@ -149,13 +225,13 @@ export default function LeaderBoard() {
                           <div className="text-right">
                             <div className="text-zinc-400 text-xs">This week</div>
                             <div className="text-zinc-100 font-semibold">
-                              {u.week}h
+                              {u.weekHours}h
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-zinc-400 text-xs">Today</div>
                             <div className="text-zinc-100 font-semibold">
-                              {u.today}h
+                              {u.todayHours}h
                             </div>
                           </div>
                         </div>
