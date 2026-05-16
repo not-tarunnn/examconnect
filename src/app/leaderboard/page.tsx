@@ -83,8 +83,9 @@ export default function LeaderBoard() {
 
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const diffToMonday = (now.getDay() === 0 ? 7 : now.getDay()) - 1;
-        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+        const day = (d: number) => (d === 0 ? 7 : d);
+        const diffToMonday = day(now.getDay()) - 1;
+        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday, 0, 0, 0, 0);
 
         const leaderboard: LeaderboardUser[] = [];
 
@@ -94,20 +95,21 @@ export default function LeaderBoard() {
 
           const logs = logsPerUser.get(uid) || [];
 
-          let todayHours = 0;
-          let weekHours = 0;
+          let tToday = 0;
+          let tWeek = 0;
 
           for (const log of logs) {
-            const logDate = log.createdAt instanceof Timestamp ? log.createdAt.toDate() : new Date(log.createdAt);
-            const durationHours = (log.duration || 0) / 3600;
+            const duration = Number(log.duration) || 0;
+            const ts = log.createdAt instanceof Timestamp ? log.createdAt.toDate() : new Date(log.createdAt);
 
-            if (logDate >= startOfToday) {
-              todayHours += durationHours;
-            }
-            if (logDate >= startOfWeek) {
-              weekHours += durationHours;
-            }
+            if (!ts || Number.isNaN(duration) || duration <= 0) continue;
+
+            if (ts >= startOfWeek) tWeek += duration;
+            if (ts >= startOfToday) tToday += duration;
           }
+
+          const todayHours = Math.round((tToday / 3600) * 10) / 10;
+          const weekHours = Math.round((tWeek / 3600) * 10) / 10;
 
           let streak = 0;
           try {
@@ -124,8 +126,8 @@ export default function LeaderBoard() {
             uid,
             fullName: userData.fullName,
             streak,
-            weekHours: Math.round(weekHours * 10) / 10,
-            todayHours: Math.round(todayHours * 10) / 10,
+            weekHours,
+            todayHours,
           });
         }
 
