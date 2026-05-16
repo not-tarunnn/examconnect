@@ -3,8 +3,9 @@
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
 import React, { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, getDocs, where, Timestamp } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { collection, getDocs, Timestamp } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 interface LeaderboardUser {
   uid: string;
@@ -45,10 +46,23 @@ const rankStyles = (i: number) => {
 export default function LeaderBoard() {
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchUsers = async () => {
       try {
+        setError(null);
         const logsSnapshot = await getDocs(collection(db, "pomodoroLogs"));
         const usersSnapshot = await getDocs(collection(db, "users"));
 
@@ -138,13 +152,14 @@ export default function LeaderBoard() {
         setUsers(leaderboard);
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
+        setError("Failed to load leaderboard. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [isAuthenticated]);
 
   const displayUsers = users.length > 0 ? users : [];
 
@@ -164,6 +179,16 @@ export default function LeaderBoard() {
         {/* Leaderboard Section */}
         <main className="flex flex-col items-center justify-start flex-1 px-4 py-10">
           <div className="w-full max-w-4xl">
+            {!isAuthenticated && (
+              <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-700 rounded-lg text-yellow-100 text-sm">
+                Please log in to view the leaderboard.
+              </div>
+            )}
+            {error && (
+              <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-100 text-sm">
+                {error}
+              </div>
+            )}
             <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-[#202020]">
               {/* Headings */}
               <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-zinc-800 text-zinc-400 text-sm">
@@ -180,13 +205,17 @@ export default function LeaderBoard() {
 
               {/* List */}
               <ul className="divide-y divide-zinc-800">
-                {loading ? (
+                {!isAuthenticated ? (
+                  <li className="px-6 py-4 text-center text-zinc-400">
+                    Please log in to view the leaderboard
+                  </li>
+                ) : loading ? (
                   <li className="px-6 py-4 text-center text-zinc-400">
                     Loading leaderboard...
                   </li>
                 ) : displayUsers.length === 0 ? (
                   <li className="px-6 py-4 text-center text-zinc-400">
-                    No users yet
+                    No users with study sessions yet
                   </li>
                 ) : (
                   displayUsers.map((u, idx) => {
