@@ -4,7 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
 import React, { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, Timestamp } from "firebase/firestore";
+import { collection, getDocs, Timestamp, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
 interface LeaderboardUser {
@@ -87,22 +87,16 @@ export default function LeaderBoard() {
 
         const leaderboard: LeaderboardUser[] = [];
 
-        logsPerUser.forEach((logs, uid) => {
+        for (const uid of userMap.keys()) {
           const userData = userMap.get(uid);
-          if (!userData) return;
+          if (!userData) continue;
 
-          const sortedLogs = logs.sort((a, b) => {
-            const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
-            const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
-            return dateB.getTime() - dateA.getTime();
-          });
+          const logs = logsPerUser.get(uid) || [];
 
           let todayHours = 0;
           let weekHours = 0;
-          let streak = 0;
-          const uniqueDays = new Set<string>();
 
-          for (const log of sortedLogs) {
+          for (const log of logs) {
             const logDate = log.createdAt instanceof Timestamp ? log.createdAt.toDate() : new Date(log.createdAt);
             const durationHours = (log.duration || 0) / 3600;
 
@@ -112,31 +106,17 @@ export default function LeaderBoard() {
             if (logDate >= startOfWeek) {
               weekHours += durationHours;
             }
-
-            const dateKey = logDate.toISOString().split("T")[0];
-            uniqueDays.add(dateKey);
           }
 
-          const sortedDays = Array.from(uniqueDays)
-            .sort()
-            .reverse();
-
-          if (sortedDays.length > 0) {
-            let currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            for (const dayStr of sortedDays) {
-              const logDate = new Date(dayStr);
-              const diffDays = Math.floor((currentDate.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24));
-
-              if (diffDays === 0) {
-                streak++;
-                currentDate.setDate(currentDate.getDate() - 1);
-              } else if (diffDays === 1) {
-                streak++;
-                currentDate = logDate;
-              } else {
-                break;
-              }
+          let streak = 0;
+          try {
+            const streakDocRef = doc(db, "streak", uid);
+            const streakDocSnap = await getDoc(streakDocRef);
+            if (streakDocSnap.exists()) {
+              streak = streakDocSnap.data().streak || 0;
             }
+          } catch (e) {
+            console.error(`Error fetching streak for ${uid}:`, e);
           }
 
           leaderboard.push({
@@ -146,7 +126,7 @@ export default function LeaderBoard() {
             weekHours: Math.round(weekHours * 10) / 10,
             todayHours: Math.round(todayHours * 10) / 10,
           });
-        });
+        }
 
         leaderboard.sort((a, b) => b.streak - a.streak);
         setUsers(leaderboard);
