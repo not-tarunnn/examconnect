@@ -189,9 +189,9 @@ export default function LeaderBoard() {
                 {error}
               </div>
             )}
-            <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-[#202020]">
+            <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-[#202020] flex flex-col h-[600px]">
               {/* Headings */}
-              <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-zinc-800 text-zinc-400 text-sm">
+              <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-zinc-800 text-zinc-400 text-sm flex-shrink-0">
                 <div className="flex items-center gap-4 w-1/2">
                   <div className="w-8 text-center">#</div>
                   <div>Name</div>
@@ -204,7 +204,7 @@ export default function LeaderBoard() {
               </div>
 
               {/* List */}
-              <ul className="divide-y divide-zinc-800">
+              <ul className="divide-y divide-zinc-800 overflow-y-auto flex-1">
                 {!isAuthenticated ? (
                   <li className="px-6 py-4 text-center text-zinc-400">
                     Please log in to view the leaderboard
