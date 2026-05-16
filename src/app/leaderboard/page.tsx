@@ -223,40 +223,41 @@ export default function LeaderBoard() {
                     return (
                       <li
                         key={u.uid}
-                        className={`flex items-center gap-4 sm:gap-6 px-4 sm:px-6 py-4 hover:bg-[#252525] transition-colors ${style.glow}`}
+                        className={`flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-[#252525] transition-colors ${style.glow}`}
                       >
-                        {/* Rank badge */}
-                        <div
-                          className={`flex items-center justify-center w-9 h-9 rounded-md font-medium text-sm flex-shrink-0 ${style.text}`}
-                        >
-                          <span>{style.medal ? style.medal : idx + 1}</span>
+                        {/* Left: rank + name */}
+                        <div className="flex items-center gap-4 sm:gap-6 w-1/2">
+                          <div
+                            className={`flex items-center justify-center w-9 h-9 rounded-md font-medium text-sm ${style.text}`}
+                          >
+                            <span>{style.medal ? style.medal : idx + 1}</span>
+                          </div>
+
+                          <div>
+                            <div className="text-zinc-100 font-medium leading-tight">
+                              {u.fullName}
+                            </div>
+                            <div className="text-zinc-500 text-xs mt-0.5">
+                              {idx === 0 ? "Top learner" : "Learner"}
+                            </div>
+                          </div>
                         </div>
 
-                        {/* User info and stats */}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-zinc-100 font-medium leading-tight">
-                            {u.fullName}
-                          </div>
-                          <div className="text-zinc-500 text-xs mt-0.5">
-                            {idx === 0 ? "Top learner" : "Learner"}
-                          </div>
-
-                          {/* Stats below name */}
-                          <div className="flex gap-8 mt-2">
-                            <div>
-                              <div className="text-zinc-100 font-semibold text-sm">
-                                {u.streak}d
-                              </div>
+                        {/* Right: stats aligned with headers */}
+                        <div className="flex gap-12 items-center w-1/2 justify-end">
+                          <div className="w-28 text-right">
+                            <div className="text-zinc-100 font-semibold">
+                              {u.streak}d
                             </div>
-                            <div>
-                              <div className="text-zinc-100 font-semibold text-sm">
-                                {u.weekHours}h
-                              </div>
+                          </div>
+                          <div className="w-28 text-right">
+                            <div className="text-zinc-100 font-semibold">
+                              {u.weekHours}h
                             </div>
-                            <div>
-                              <div className="text-zinc-100 font-semibold text-sm">
-                                {u.todayHours}h
-                              </div>
+                          </div>
+                          <div className="w-28 text-right">
+                            <div className="text-zinc-100 font-semibold">
+                              {u.todayHours}h
                             </div>
                           </div>
                         </div>
