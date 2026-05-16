@@ -2,20 +2,17 @@
 
 import Sidebar from "@/components/Sidebar";
 import HeaderApp from "@/components/HeaderApp";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
 
-const DATA = [
-  { name: "Aarav Singh", streak: 23, week: 18, today: 3 },
-  { name: "Neha Patel", streak: 20, week: 15, today: 2 },
-  { name: "Rohit Sharma", streak: 18, week: 12, today: 1 },
-  { name: "Ishita Mehta", streak: 14, week: 10, today: 1 },
-  { name: "Vikram Rao", streak: 12, week: 8, today: 0.5 },
-  { name: "Mehul Jain", streak: 9, week: 6, today: 0.5 },
-  { name: "Kiran Das", streak: 7, week: 5, today: 1 },
-  { name: "Sana Verma", streak: 6, week: 4.5, today: 0.25 },
-  { name: "Arjun Kapoor", streak: 5, week: 4, today: 0 },
-  { name: "Priya Rao", streak: 4, week: 3, today: 0.75 },
-];
+interface LeaderboardUser {
+  id: string;
+  fullName: string;
+  streak: number;
+  week: number;
+  today: number;
+}
 
 const rankStyles = (i: number) => {
   if (i === 0)
@@ -40,6 +37,41 @@ const rankStyles = (i: number) => {
 };
 
 export default function LeaderBoard() {
+  const [users, setUsers] = useState<LeaderboardUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const q = query(
+          collection(db, "users"),
+          orderBy("streak", "desc"),
+          limit(50)
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((doc) => {
+          const docData = doc.data();
+          return {
+            id: doc.id,
+            fullName: docData.fullName || "Unknown User",
+            streak: docData.streak || 0,
+            week: docData.weekStats || 0,
+            today: docData.todayStats || 0,
+          };
+        });
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const displayUsers = users.length > 0 ? users : [];
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -72,55 +104,65 @@ export default function LeaderBoard() {
 
               {/* List */}
               <ul className="divide-y divide-zinc-800">
-                {DATA.map((u, idx) => {
-                  const style = rankStyles(idx);
-                  return (
-                    <li
-                      key={u.name}
-                      className={`flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-[#252525] transition-colors ${style.glow}`}
-                    >
-                      {/* Left: rank + name */}
-                      <div className="flex items-center gap-4 sm:gap-6 w-1/2">
-                        <div
-                          className={`flex items-center justify-center w-9 h-9 rounded-md font-medium text-sm ${style.text}`}
-                        >
-                          <span>{style.medal ? style.medal : idx + 1}</span>
+                {loading ? (
+                  <li className="px-6 py-4 text-center text-zinc-400">
+                    Loading leaderboard...
+                  </li>
+                ) : displayUsers.length === 0 ? (
+                  <li className="px-6 py-4 text-center text-zinc-400">
+                    No users yet
+                  </li>
+                ) : (
+                  displayUsers.map((u, idx) => {
+                    const style = rankStyles(idx);
+                    return (
+                      <li
+                        key={u.id}
+                        className={`flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-[#252525] transition-colors ${style.glow}`}
+                      >
+                        {/* Left: rank + name */}
+                        <div className="flex items-center gap-4 sm:gap-6 w-1/2">
+                          <div
+                            className={`flex items-center justify-center w-9 h-9 rounded-md font-medium text-sm ${style.text}`}
+                          >
+                            <span>{style.medal ? style.medal : idx + 1}</span>
+                          </div>
+
+                          <div>
+                            <div className="text-zinc-100 font-medium leading-tight">
+                              {u.fullName}
+                            </div>
+                            <div className="text-zinc-500 text-xs mt-0.5">
+                              {idx === 0 ? "Top learner" : "Learner"}
+                            </div>
+                          </div>
                         </div>
 
-                        <div>
-                          <div className="text-zinc-100 font-medium leading-tight">
-                            {u.name}
+                        {/* Right: stats */}
+                        <div className="flex flex-col md:flex-row gap-3 md:gap-8 items-end w-1/2 justify-end">
+                          <div className="text-right">
+                            <div className="text-zinc-400 text-xs">Streak</div>
+                            <div className="text-zinc-100 font-semibold">
+                              {u.streak}d
+                            </div>
                           </div>
-                          <div className="text-zinc-500 text-xs mt-0.5">
-                            {idx === 0 ? "Top learner" : "Learner"}
+                          <div className="text-right">
+                            <div className="text-zinc-400 text-xs">This week</div>
+                            <div className="text-zinc-100 font-semibold">
+                              {u.week}h
+                            </div>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Right: stats */}
-                      <div className="flex flex-col md:flex-row gap-3 md:gap-8 items-end w-1/2 justify-end">
-                        <div className="text-right">
-                          <div className="text-zinc-400 text-xs">Streak</div>
-                          <div className="text-zinc-100 font-semibold">
-                            {u.streak}d
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-zinc-400 text-xs">This week</div>
-                          <div className="text-zinc-100 font-semibold">
-                            {u.week}h
+                          <div className="text-right">
+                            <div className="text-zinc-400 text-xs">Today</div>
+                            <div className="text-zinc-100 font-semibold">
+                              {u.today}h
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-zinc-400 text-xs">Today</div>
-                          <div className="text-zinc-100 font-semibold">
-                            {u.today}h
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
+                      </li>
+                    );
+                  })
+                )}
               </ul>
             </div>
           </div>
