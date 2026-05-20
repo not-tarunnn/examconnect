@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { generateOnboardingTasks } from "@/lib/generateOnboardingTasks";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -62,16 +63,10 @@ export default function Step3() {
     setField,
   } = useOnboardingStore();
 
-  // unified submit: checks agreed, writes user doc + username and records acceptance metadata
   const handleSubmit = async () => {
     if (!agreed) {
       return alert("Please check the box to agree to the User Agreement.");
     }
-
-    const handleSubmit = () => {
-  console.log("Form submitted:", { agreed, wantsNewsletter });
-  // Send to backend or Brevo API if wantsNewsletter is true
-};
 
     setSaving(true);
     try {
@@ -107,12 +102,19 @@ export default function Step3() {
         version: VERSION,
         acceptedAt: serverTimestamp(),
       });
-     
+
       // Record newsletter preference (optional)
-await setDoc(doc(db, "users", uid, "agreements", "newsletterOptIn"), {
-  optedIn: wantsNewsletter || false, // boolean
-  updatedAt: serverTimestamp(),
-});
+      await setDoc(doc(db, "users", uid, "agreements", "newsletterOptIn"), {
+        optedIn: wantsNewsletter || false,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Generate and save onboarding study tasks based on class and exam
+      const onboardingTasks = generateOnboardingTasks(uid, classLevel, targetExam);
+      const tasksCollection = collection(db, "tasks");
+      for (const taskData of onboardingTasks) {
+        await addDoc(tasksCollection, taskData);
+      }
 
       // set local acceptedAt for UI
       setAcceptedAt(new Date().toISOString());
