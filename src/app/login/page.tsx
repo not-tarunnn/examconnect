@@ -10,6 +10,7 @@ import {
   googleProvider,
   facebookProvider,
   appleProvider,
+  db,
 } from "@/lib/firebase";
 import {
   signInWithPopup,
@@ -17,6 +18,7 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import { initializeLocationLogging } from "@/lib/userLocationService";
+import { query, collection, where, getDocs } from "firebase/firestore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -78,6 +80,21 @@ export default function LoginPage() {
 };
 
 
+  const getEmailFromUsername = async (username: string) => {
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data().email;
+      }
+      return null;
+    } catch (err) {
+      console.error("Error looking up username:", err);
+      return null;
+    }
+  };
+
   const loginWithEmail = async () => {
     setError(""); // reset error
     try {
@@ -85,14 +102,27 @@ export default function LoginPage() {
         setError("Please enter both email and password.");
         return;
       }
-      const result = await signInWithEmailAndPassword(auth, email, password);  // <-- use password state here
+
+      let loginEmail = email;
+
+      // Check if input is a username (doesn't contain @)
+      if (!email.includes("@")) {
+        const foundEmail = await getEmailFromUsername(email);
+        if (!foundEmail) {
+          setError("Username not found.");
+          return;
+        }
+        loginEmail = foundEmail;
+      }
+
+      const result = await signInWithEmailAndPassword(auth, loginEmail, password);
       const userId = result.user.uid;
       // Log user location data in background
       initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
-      else setError("Email login failed.");
+      else setError("Login failed.");
     }
   };
 
@@ -121,14 +151,14 @@ export default function LoginPage() {
   className="flex-1 w-full"
 >
   <label htmlFor="email" className="block text-sm font-medium mb-1">
-    Email
+    Email or Username
   </label>
   <input
-    type="email"
+    type="text"
     id="email"
     value={email}
     onChange={(e) => setEmail(e.target.value)}
-    placeholder="Enter your email"
+    placeholder="Enter your email or username"
     className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
     required
   />
