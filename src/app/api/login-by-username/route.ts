@@ -23,25 +23,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Query users collection where username field matches
-    const usersRef = db.collection("users");
-    const snapshot = await usersRef.where("username", "==", username).limit(1).get();
+    // Step 1: Query usernames/{username} to get the uid
+    const usernamesRef = db.collection("usernames");
+    const usernameDoc = await usernamesRef.doc(username).get();
 
-    if (snapshot.empty) {
+    if (!usernameDoc.exists) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    const userDoc = snapshot.docs[0];
-    const uid = userDoc.id;
-    const userData = userDoc.data();
+    const uid = usernameDoc.data()?.uid;
 
-    // Return UID and email from Firestore document
+    if (!uid) {
+      return NextResponse.json(
+        { error: "Invalid username record" },
+        { status: 400 }
+      );
+    }
+
+    // Step 2: Query users/{uid} to get the email
+    const usersRef = db.collection("users");
+    const userDoc = await usersRef.doc(uid).get();
+
+    if (!userDoc.exists) {
+      return NextResponse.json(
+        { error: "User profile not found" },
+        { status: 404 }
+      );
+    }
+
+    const userData = userDoc.data();
+    const email = userData?.email;
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "User email not found" },
+        { status: 400 }
+      );
+    }
+
+    // Return UID and email for login
     return NextResponse.json({
       uid,
-      email: userData.email || null,
+      email,
     });
   } catch (error) {
     console.error("Error looking up username:", error);
