@@ -96,7 +96,7 @@ export default function Step3() {
       });
 
       // Store the username separately to ensure uniqueness
-      await setDoc(doc(db, "usernames", username), { uid, email: userObj.email || "" });
+      await setDoc(doc(db, "usernames", username), { uid });
 
       // Record agreement metadata (subcollection under user)
       await setDoc(doc(db, "users", uid, "agreements", "userAgreement"), {

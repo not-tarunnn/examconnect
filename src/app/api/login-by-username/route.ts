@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 const apps = getApps();
@@ -11,6 +12,7 @@ const adminApp = apps.length === 0
   : getApp();
 
 const db = getFirestore(adminApp);
+const auth = getAuth(adminApp);
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,11 +38,21 @@ export async function POST(request: NextRequest) {
 
     const data = usernameDoc.data();
     const uid = data?.uid;
-    const email = data?.email;
 
     if (!uid) {
       return NextResponse.json(
         { error: "Invalid username record" },
+        { status: 400 }
+      );
+    }
+
+    // Get email from Firebase Auth using uid
+    const authUser = await auth.getUser(uid);
+    const email = authUser.email;
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "User email not found in auth" },
         { status: 400 }
       );
     }
