@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Query usernames/{username} to get the uid
+    // Query usernames/{username} to get the uid
     const usernamesRef = db.collection("usernames");
     const usernameDoc = await usernamesRef.doc(username).get();
 
@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const uid = usernameDoc.data()?.uid;
+    const data = usernameDoc.data();
+    const uid = data?.uid;
+    const email = data?.email;
 
     if (!uid) {
       return NextResponse.json(
@@ -43,32 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 2: Query users/{uid} to get the email
-    const usersRef = db.collection("users");
-    const userDoc = await usersRef.doc(uid).get();
-
-    if (!userDoc.exists) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
-    }
-
-    const userData = userDoc.data();
-    const email = userData?.email;
-
-    if (!email) {
-      return NextResponse.json(
-        { error: "User email not found" },
-        { status: 400 }
-      );
-    }
-
-    // Return UID and email for login
-    return NextResponse.json({
-      uid,
-      email,
-    });
+    return NextResponse.json({ uid, email });
   } catch (error) {
     console.error("Error looking up username:", error);
     return NextResponse.json(

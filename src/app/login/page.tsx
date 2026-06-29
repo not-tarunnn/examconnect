@@ -83,7 +83,7 @@ export default function LoginPage() {
 };
 
 
-  const getEmailFromUsername = async (username: string): Promise<string | null> => {
+  const getUidFromUsername = async (username: string): Promise<{ uid: string; email: string } | null> => {
     try {
       const response = await fetch("/api/login-by-username", {
         method: "POST",
@@ -96,7 +96,7 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-      return data.email;
+      return { uid: data.uid, email: data.email };
     } catch (err) {
       console.error("Error looking up username:", err);
       return null;
@@ -115,12 +115,12 @@ export default function LoginPage() {
 
       // Check if input is a username (doesn't contain @)
       if (!email.includes("@")) {
-        const foundEmail = await getEmailFromUsername(email);
-        if (!foundEmail) {
+        const userInfo = await getUidFromUsername(email);
+        if (!userInfo) {
           setError("Username not found.");
           return;
         }
-        loginEmail = foundEmail;
+        loginEmail = userInfo.email;
       }
 
       const result = await signInWithEmailAndPassword(auth, loginEmail, password);
