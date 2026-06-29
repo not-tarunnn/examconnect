@@ -1,10 +1,9 @@
 import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { getAuth } from "firebase-admin/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 const apps = getApps();
-const adminApp = apps.length === 0 
+const adminApp = apps.length === 0
   ? initializeApp({
       credential: cert(JSON.parse(process.env.FIREBASE_ADMIN_SDK_KEY || "{}")),
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -12,7 +11,6 @@ const adminApp = apps.length === 0
   : getApp();
 
 const db = getFirestore(adminApp);
-const adminAuth = getAuth(adminApp);
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,8 +23,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Query users collection where username field matches
     const usersRef = db.collection("users");
-    const snapshot = await usersRef.where("username", "==", username).get();
+    const snapshot = await usersRef.where("username", "==", username).limit(1).get();
 
     if (snapshot.empty) {
       return NextResponse.json(
@@ -35,17 +34,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const uid = snapshot.docs[0].id;
-    const user = await adminAuth.getUser(uid);
+    const userDoc = snapshot.docs[0];
+    const uid = userDoc.id;
+    const userData = userDoc.data();
 
+    // Return UID and email from Firestore document
     return NextResponse.json({
       uid,
-      email: user.email,
+      email: userData.email || null,
     });
   } catch (error) {
     console.error("Error looking up username:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to lookup username. Please try again." },
       { status: 500 }
     );
   }
