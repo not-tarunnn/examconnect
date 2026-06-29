@@ -16,9 +16,12 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   signInAnonymously,
+  getAuth,
+  signInWithCredential,
+  EmailAuthProvider,
 } from "firebase/auth";
 import { initializeLocationLogging } from "@/lib/userLocationService";
-import { query, collection, where, getDocs } from "firebase/firestore";
+import { query, collection, where, getDocs, doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -80,15 +83,20 @@ export default function LoginPage() {
 };
 
 
-  const getEmailFromUsername = async (username: string) => {
+  const getEmailFromUsername = async (username: string): Promise<string | null> => {
     try {
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("username", "==", username));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data().email;
+      const response = await fetch("/api/login-by-username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+
+      if (!response.ok) {
+        return null;
       }
-      return null;
+
+      const data = await response.json();
+      return data.email;
     } catch (err) {
       console.error("Error looking up username:", err);
       return null;

@@ -84,6 +84,7 @@ export default function Step3() {
       await setDoc(doc(db, "users", uid), {
         username,
         fullName,
+        email: userObj.email || "",
         gender,
         dob,
         bio,
