@@ -9,10 +9,9 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true, // disables ESLint checks during build
+  turbopack: {
+    root: ".",
   },
-  // other config options...
 };
 
 export default nextConfig;
