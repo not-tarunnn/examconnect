@@ -10,18 +10,13 @@ import {
   googleProvider,
   facebookProvider,
   appleProvider,
-  db,
 } from "@/lib/firebase";
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
   signInAnonymously,
-  getAuth,
-  signInWithCredential,
-  EmailAuthProvider,
 } from "firebase/auth";
 import { initializeLocationLogging } from "@/lib/userLocationService";
-import { query, collection, where, getDocs, doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -83,26 +78,6 @@ export default function LoginPage() {
 };
 
 
-  const getUidFromUsername = async (username: string): Promise<{ uid: string; email: string } | null> => {
-    try {
-      const response = await fetch("/api/login-by-username", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
-      });
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
-      return { uid: data.uid, email: data.email };
-    } catch (err) {
-      console.error("Error looking up username:", err);
-      return null;
-    }
-  };
-
   const loginWithEmail = async () => {
     setError(""); // reset error
     try {
@@ -110,27 +85,14 @@ export default function LoginPage() {
         setError("Please enter both email and password.");
         return;
       }
-
-      let loginEmail = email;
-
-      // Check if input is a username (doesn't contain @)
-      if (!email.includes("@")) {
-        const userInfo = await getUidFromUsername(email);
-        if (!userInfo) {
-          setError("Username not found.");
-          return;
-        }
-        loginEmail = userInfo.email;
-      }
-
-      const result = await signInWithEmailAndPassword(auth, loginEmail, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);  // <-- use password state here
       const userId = result.user.uid;
       // Log user location data in background
       initializeLocationLogging(userId).catch(console.error);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
-      else setError("Login failed.");
+      else setError("Email login failed.");
     }
   };
 
@@ -159,14 +121,14 @@ export default function LoginPage() {
   className="flex-1 w-full"
 >
   <label htmlFor="email" className="block text-sm font-medium mb-1">
-    Email or Username
+    Email
   </label>
   <input
-    type="text"
+    type="email"
     id="email"
     value={email}
     onChange={(e) => setEmail(e.target.value)}
-    placeholder="Enter your email or username"
+    placeholder="Enter your email"
     className="w-full border-b border-blue-500 focus:outline-none focus:border-blue-600 py-2"
     required
   />

@@ -443,7 +443,7 @@ export default function ChatTab() {
       }
       if (hasText) {
         await push(messagesRef, {
-          text: input.trim(),
+          text: input,
           sender: user.uid,
           senderName: myDisplayName || user.uid,
           timestamp: Date.now(),
@@ -809,14 +809,18 @@ export default function ChatTab() {
                   </div>
                 )}
 
-                <input
+                <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") sendMessage();
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
                   }}
                   placeholder="Message"
-                  className="flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm"
+                  rows={1}
+                  className="flex-1 min-w-0 resize-none bg-transparent outline-none text-zinc-100 placeholder-zinc-400 text-sm whitespace-pre-wrap"
                 />
                 <AttachmentPicker onUploadAction={(base64: string, mime: string, filename: string) => {
                   addAttachment(base64, mime, filename);

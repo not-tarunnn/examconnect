@@ -407,8 +407,6 @@ export default function ChatTabMini({ compact = true }: ChatTabProps) {
     textElsRef.current.set(index, el);
   };
   
-const inputRef = useRef<HTMLInputElement | null>(null);
-
   // Measure all elements *after* render (not during); recalc on messages change and on resize
   useEffect(() => {
     const recalc = () => {
@@ -462,7 +460,7 @@ const inputRef = useRef<HTMLInputElement | null>(null);
     }
     if (hasText) {
       await push(messagesRef, {
-        text: input.trim(),
+        text: input,
         sender: user.uid,
         senderName: myDisplayName || user.uid,
         timestamp: Date.now(),
@@ -760,14 +758,18 @@ const attachmentThumbSize = compact ? "w-10 h-10" : "w-12 h-12";
                   </div>
                 )}
 
-                <input
+                <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") sendMessage();
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
                   }}
                   placeholder="Message"
-                  className={`flex-1 bg-transparent outline-none text-zinc-100 placeholder-zinc-400 ${inputFontSize}`}
+                  rows={1}
+                  className={`flex-1 min-w-0 resize-none bg-transparent outline-none text-zinc-100 placeholder-zinc-400 whitespace-pre-wrap ${inputFontSize}`}
                 />
                 <AttachmentPicker onUploadAction={(base64: string, mime: string, filename: string) => {
                   addAttachment(base64, mime, filename);
